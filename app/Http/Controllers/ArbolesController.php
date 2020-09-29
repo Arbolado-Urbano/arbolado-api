@@ -18,10 +18,10 @@ class ArbolesController extends Controller
     }
 
     /**
-   * Listar todas las especies
+   * Listar todos los árboles
    *
    * @param  \Illuminate\Http\Request $request
-   * @return Response - JSON con una lista de todas las especies.
+   * @return Response - JSON con una lista de todos los árobles.
    */
     public function list(Request $request)
     {
@@ -73,5 +73,51 @@ class ArbolesController extends Controller
         }
 
         return response()->json($arboles->get());
+    }
+
+    /**
+   * Listar todas las especies
+   *
+   * @param  $id
+   * @return Response - JSON con los detalles del árbol.
+   */
+    public function get($id)
+    {
+        $arbol = Arbol::select([
+          'registros.id',
+          'registros.calle',
+          'registros.calle_altura',
+          'registros.altura',
+          'registros.espacio_verde',
+          'registros.especie_id',
+          'registros.fecha_creacion',
+          'registros.streetview',
+          'registros.lat',
+          'registros.lng',
+          'especies.nombre_cientifico',
+          'especies.nombre_comun',
+          'especies.origen',
+          'especies.region_pampeana',
+          'especies.region_nea',
+          'especies.region_noa',
+          'especies.region_cuyana',
+          'especies.region_patagonica',
+          'especies.procedencia_exotica',
+          'tipos.tipo',
+          'familias.familia',
+          'fuentes.nombre',
+          'fuentes.descripcion',
+          'fuentes.url',
+          'fuentes.facebook',
+          'fuentes.twitter',
+          'fuentes.instagram',
+        ])
+        ->join('especies', 'especie_id', '=', 'especies.id')
+        ->join('tipos', 'tipos.id', '=', 'especies.tipo_id')
+        ->join('familias', 'familias.id', '=', 'especies.familia_id')
+        ->join('fuentes', 'fuentes.id', '=', 'registros.fuente_id')
+        ->where('registros.id', $id);
+
+        return response()->json($arbol->first());
     }
 }

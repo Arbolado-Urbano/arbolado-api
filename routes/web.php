@@ -19,6 +19,7 @@ $router->get('/', function () use ($router) {
 
 $router->get('/especies', 'EspeciesController@list');
 $router->get('/arboles', 'ArbolesController@list');
+$router->get('/arboles/{id}', 'ArbolesController@get');
 
 $router->options('{all:.*}', ['middleware' => 'cors.options', function () {
     return response('');
