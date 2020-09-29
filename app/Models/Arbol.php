@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Arbol extends Model
 {
+    protected $table = 'registros';
+
     /**
      * The attributes that are mass assignable.
      *

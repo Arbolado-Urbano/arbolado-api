@@ -16,8 +16,12 @@ class CORSOrigin
     public function handle($request, Closure $next)
     {
         try {
-            return $next($request)
-              ->header('Access-Control-Allow-Origin', $_SERVER['HTTP_ORIGIN']);
+            if (isset($_SERVER['HTTP_ORIGIN'])) {
+                return $next($request)
+                ->header('Access-Control-Allow-Origin', $_SERVER['HTTP_ORIGIN']);
+            }
+
+            return $next($request);
         } catch (\Exception $e) {
             var_dump($e);
         }
