@@ -28,41 +28,45 @@ class ArbolesController extends Controller
         $arboles = Arbol::select(['registros.id', 'lat', 'lng', 'especie_id', 'icono'])
         ->join('especies', 'especie_id', '=', 'especies.id');
 
-        if ($request->input('especie_id')) {
+        if (!empty($request->input('especie_id')) && ($request->input('especie_id'))) {
             $arboles->where('especie_id', $request->input('especie_id'));
         }
 
-        if ($request->input('user_sabores')) {
+        if (!empty($request->input('user_sabores')) && ($request->input('user_sabores'))) {
             $arboles->where(function ($query) {
                 $query->where('comestible', 'Sí')->orWhere('medicinal', 'Sí');
             });
         }
 
-        if ($request->input('user_origen')) {
+        if (!empty($request->input('user_origen')) && ($request->input('user_origen'))) {
             $arboles->where('origen', 'like', '%'.$request->input('user_origen').'%');
         }
 
-        if ($request->input('borigen_pampeana')) {
+        if (!empty($request->input('borigen_pampeana')) && ($request->input('borigen_pampeana'))) {
             $arboles->where('region_pampeana', true);
         }
 
-        if ($request->input('borigen_nea')) {
+        if (!empty($request->input('borigen_nea')) && ($request->input('borigen_nea'))) {
             $arboles->where('region_nea', true);
         }
 
-        if ($request->input('borigen_noa')) {
+        if (!empty($request->input('borigen_noa')) && ($request->input('borigen_noa'))) {
             $arboles->where('region_noa', true);
         }
 
-        if ($request->input('borigen_cuyana')) {
+        if (!empty($request->input('borigen_cuyana')) && ($request->input('borigen_cuyana'))) {
             $arboles->where('region_cuyana', true);
         }
 
-        if ($request->input('borigen_patagonica')) {
+        if (!empty($request->input('borigen_patagonica')) && ($request->input('borigen_patagonica'))) {
             $arboles->where('region_patagonica', true);
         }
 
-        if (($request->input('user_latlng')) && ($request->input('radio'))) {
+        if ((!empty($request->input('user_latlng'))) &&
+          ($request->input('user_latlng')) &&
+          (!empty($request->input('radio'))) &&
+          ($request->input('radio'))
+        ) {
             $radio = $request->input('radio');
             $user_latlng = explode(" ", $request->input('user_latlng'));
             $user_lat = $user_latlng[0];
