@@ -80,9 +80,9 @@ class ArbolesController extends Controller
     }
 
     /**
-   * Listar todas las especies
+   * Mostar detalles de un árbol
    *
-   * @param  $id
+   * @param  $id - ID del árbol
    * @return Response - JSON con los detalles del árbol.
    */
     public function get($id)
