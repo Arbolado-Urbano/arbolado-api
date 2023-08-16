@@ -23,9 +23,9 @@ class EspeciesController extends Controller
    */
     public function list()
     {
-        $especies = Especie::select(['nombre_cientifico', 'nombre_comun', 'especies.id'])
+        $especies = Especie::select(['nombre_cientifico', 'nombre_comun', 'url', 'especies.id'])
         ->join('registros', 'registros.especie_id', '=', 'especies.id')
-        ->groupBy(['especies.id', 'nombre_cientifico', 'nombre_comun'])
+        ->groupBy(['especies.id', 'nombre_cientifico', 'nombre_comun', 'url'])
         ->orderBy('nombre_cientifico');
         return response()->json($especies->get());
     }
