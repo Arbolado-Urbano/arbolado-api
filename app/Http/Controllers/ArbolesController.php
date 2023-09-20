@@ -107,6 +107,7 @@ class ArbolesController extends Controller
           'especies.region_cuyana',
           'especies.region_patagonica',
           'especies.procedencia_exotica',
+          'especies.icono',
           'tipos.tipo',
           'familias.familia',
           'fuentes.nombre',
