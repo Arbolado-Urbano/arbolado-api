@@ -104,6 +104,7 @@ class ArbolesController extends Controller
             'records',
             'records.source',
         ])->where('arboles.id', $id)->first();
+        if (!$tree) return response('', 404);
         return response()->json($tree);
     }
 }
