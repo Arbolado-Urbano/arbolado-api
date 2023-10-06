@@ -31,8 +31,8 @@ class Especies extends Migration
         $table->string('img_fruto')->nullable();
         $table->string('img_fenologia')->nullable();
         $table->text('descripcion')->nullable();
-        $table->string('medicinal')->default(0)->nullable();
-        $table->string('comestible')->default(0)->nullable();
+        $table->text('medicinal')->nullable();
+        $table->string('comestible')->nullable();
         $table->text('fauna_asociada')->nullable();
         $table->string('magnitud')->nullable();
         $table->string('forma')->nullable();

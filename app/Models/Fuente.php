@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Arbol extends Model
+class Fuente extends Model
 {
-    protected $table = 'arboles';
+    protected $table = 'fuentes';
 
     /**
      * The attributes that are mass assignable.
@@ -22,13 +22,8 @@ class Arbol extends Model
      */
     protected $hidden = [];
 
-    public function species()
-    {
-        return $this->belongsTo('App\Models\Especie', 'especie_id');
-    }
-
     public function records()
     {
-        return $this->hasMany('App\Models\Registro', 'arbol_id')->orderBy('fecha_creacion', 'desc');
+        return $this->hasMany('App\Models\Registro', 'fuente_id');
     }
 }
