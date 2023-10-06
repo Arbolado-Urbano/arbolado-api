@@ -25,8 +25,8 @@ class ArbolesController extends Controller
    */
     public function list(Request $request)
     {
-        $arboles = Arbol::select(['registros.id', 'lat', 'lng', 'especie_id', 'icono'])
-        ->join('especies', 'especie_id', '=', 'especies.id');
+        $arboles = Arbol::select(['id', 'lat', 'lng', 'especie_id'])
+        ->with('species');
 
         if (!empty($request->input('especie_id')) && ($request->input('especie_id'))) {
             $arboles->where('especie_id', $request->input('especie_id'));
@@ -87,42 +87,23 @@ class ArbolesController extends Controller
    */
     public function get($id)
     {
-        $arbol = Arbol::select([
-          'registros.id',
-          'registros.calle',
-          'registros.calle_altura',
-          'registros.altura',
-          'registros.espacio_verde',
-          'registros.especie_id',
-          'registros.fecha_creacion',
-          'registros.streetview',
-          'registros.lat',
-          'registros.lng',
-          'especies.nombre_cientifico',
-          'especies.nombre_comun',
-          'especies.origen',
-          'especies.region_pampeana',
-          'especies.region_nea',
-          'especies.region_noa',
-          'especies.region_cuyana',
-          'especies.region_patagonica',
-          'especies.procedencia_exotica',
-          'especies.icono',
-          'tipos.tipo',
-          'familias.familia',
-          'fuentes.nombre',
-          'fuentes.descripcion',
-          'fuentes.url',
-          'fuentes.facebook',
-          'fuentes.twitter',
-          'fuentes.instagram',
+        $tree = Arbol::select([
+          'arboles.id',
+          'arboles.calle',
+          'arboles.calle_altura',
+          'arboles.espacio_verde',
+          'arboles.especie_id',
+          'arboles.streetview',
+          'arboles.lat',
+          'arboles.lng',
         ])
-        ->join('especies', 'especie_id', '=', 'especies.id')
-        ->join('tipos', 'tipos.id', '=', 'especies.tipo_id')
-        ->join('familias', 'familias.id', '=', 'especies.familia_id')
-        ->join('fuentes', 'fuentes.id', '=', 'registros.fuente_id')
-        ->where('registros.id', $id);
-
-        return response()->json($arbol->first());
+        ->with([
+            'species',
+            'species.family',
+            'species.type',
+            'records',
+            'records.source',
+        ])->where('arboles.id', $id)->first();
+        return response()->json($tree);
     }
 }

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class Registros extends Migration
+class Arboles extends Migration
 {
     /**
      * Run the migrations.
@@ -13,32 +13,21 @@ class Registros extends Migration
      */
     public function up()
     {
-      Schema::create('registros', function (Blueprint $table) {
+      Schema::create('arboles', function (Blueprint $table) {
         $table->increments('id');
-        $table->unsignedInteger('arbol_id');
         $table->float('lat', 12, 10)->nullable();
         $table->float('lng', 12, 10)->nullable();
         $table->string('localidad')->default('CABA');
         $table->string('calle')->nullable();
         $table->integer('calle_altura')->nullable();
         $table->string('espacio_verde')->nullable();
-        $table->decimal('altura', 6, 2)->nullable();
-        $table->decimal('diametro_a_p', 6, 2)->nullable();
-        $table->decimal('diametro_copa', 6, 2)->nullable();
-        $table->integer('inclinacion')->nullable();
-        $table->string('estado_fitosanitario')->nullable();
-        $table->string('etapa_desarrollo')->nullable();
-        $table->string('fuente_codigo_original')->nullable();
-        $table->timestamp('fecha_creacion')->useCurrent();
         $table->string('removido')->nullable();
         $table->string('streetview')->nullable();
-        $table->unsignedInteger('fuente_id');
         $table->unsignedInteger('especie_id');
         $table->timestamps();
       });
 
-      Schema::table('registros', function ($table) {
-        $table->foreign('fuente_id')->references('id')->on('fuentes')->onDelete('cascade');
+      Schema::table('arboles', function ($table) {
         $table->foreign('especie_id')->references('id')->on('especies')->onDelete('cascade');
       });
     }
@@ -50,6 +39,6 @@ class Registros extends Migration
      */
     public function down()
     {
-      Schema::dropIfExists('registros');
+      Schema::dropIfExists('arboles');
     }
 }
