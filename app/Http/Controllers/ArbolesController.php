@@ -107,4 +107,24 @@ class ArbolesController extends Controller
         if (!$tree) return response('', 404);
         return response()->json($tree);
     }
+
+    /**
+   * Mostar detalles de un árbol
+   *
+   * @param  $slud - Slug de la fuente
+   * @return Response - JSON con una lista de todos los árobles provistos por la fuente.
+   */
+    public function getSource($slug)
+    {
+        $arboles = Arbol::select(['id', 'lat', 'lng', 'especie_id'])
+        ->with([
+            'species',
+            'records',
+            'records.source',
+        ])->whereHas('records.source', function ($q) use ($slug) {
+            $q->where('slug', $slug);
+        });
+
+        return response()->json($arboles->get());
+    }
 }

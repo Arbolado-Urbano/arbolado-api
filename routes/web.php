@@ -17,6 +17,7 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
+$router->get('/fuentes/{slug}', 'ArbolesController@getSource');
 $router->get('/especies', 'EspeciesController@list');
 $router->get('/arboles', 'ArbolesController@list');
 $router->get('/arboles/{id}', 'ArbolesController@get');
