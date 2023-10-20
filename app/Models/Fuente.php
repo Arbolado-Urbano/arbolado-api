@@ -20,7 +20,7 @@ class Fuente extends Model
      *
      * @var array
      */
-    protected $hidden = [];
+    protected $hidden = ['email'];
 
     public function records()
     {
