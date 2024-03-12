@@ -26,10 +26,10 @@ class IdentifyController extends Controller
     {
       if ($request->hasFile('images')) {
         $files = $request->file('images');
+        $types = $request->input('types');
         $plantNetApiKey = env('PLANTNET_API_KEY');
         $client = new Client(['base_uri' => "https://my-api.plantnet.org", 'http_errors' => false]);
-        $data = [];
-        $data['multipart'] = [];
+        $data = ['multipart' => [], 'organs' => $types];
         foreach ($files as $file) {
           if (file_exists($file)) {
             $extension = $file->getClientOriginalExtension();
