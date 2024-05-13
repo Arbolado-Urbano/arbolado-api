@@ -21,6 +21,7 @@ $router->get('/fuentes/{slug}', 'ArbolesController@getSource');
 $router->get('/especies', 'EspeciesController@list');
 $router->get('/arboles', 'ArbolesController@list');
 $router->get('/arboles/{id}', 'ArbolesController@get');
+$router->post('/arboles', 'ArbolesController@add');
 $router->post('/identificar', 'IdentifyController@post');
 
 $router->options('{all:.*}', ['middleware' => 'cors.options', function () {
