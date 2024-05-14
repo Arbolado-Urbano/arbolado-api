@@ -7,12 +7,12 @@ use App\Models\Fuente;
 use App\Models\Aporte;
 
 use App\Mail\Aporte as AporteCorreo;
+use App\Mail\AporteConfirmacion as AporteConfirmacionCorreo;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
-use PhpParser\Node\Stmt\TryCatch;
 
 class ArbolesController extends Controller
 {
@@ -76,6 +76,8 @@ class ArbolesController extends Controller
                     'especie_id' => isset($data['speciesId']) && $data['speciesId'] !== "" ? $data['speciesId'] : null,
                 ]);
             });
+
+            // Email admin
             $email = new AporteCorreo($data);
             $email->subject('Nuevo aprote Arbolado Urbano');
             if (isset($data['images']) && $data['images'] !== "") {
@@ -92,6 +94,15 @@ class ArbolesController extends Controller
                 Mail::to(config('mail.admin_email'))->send($email);
             } catch (\Throwable $th) {
             }
+
+            // Email usuario
+            $emailConfirmacion = new AporteConfirmacionCorreo($data);
+            $emailConfirmacion->subject('Nuevo aprote Arbolado Urbano');
+            try {
+                Mail::to($data['email'])->send($emailConfirmacion);
+            } catch (\Throwable $th) {
+            }
+
             return response('', 200);
         } catch (\Throwable $th) {
             return response('', 500);
