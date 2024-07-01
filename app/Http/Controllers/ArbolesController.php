@@ -118,7 +118,7 @@ class ArbolesController extends Controller
     public function list(Request $request)
     {
         $arboles = Arbol::select(['id', 'lat', 'lng', 'especie_id'])
-        ->with('species');
+        ->with('species')->whereNull('removido');
 
         if (!empty($request->input('especie_id')) && ($request->input('especie_id'))) {
             $arboles->where('especie_id', $request->input('especie_id'));
