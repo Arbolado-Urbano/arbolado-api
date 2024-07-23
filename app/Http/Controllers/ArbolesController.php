@@ -97,7 +97,7 @@ class ArbolesController extends Controller
 
             // Email usuario
             $emailConfirmacion = new AporteConfirmacionCorreo($data);
-            $emailConfirmacion->subject('Nuevo aprote Arbolado Urbano');
+            $emailConfirmacion->subject('Nuevo aporte Arbolado Urbano');
             try {
                 Mail::to($data['email'])->send($emailConfirmacion);
             } catch (\Throwable $th) {
