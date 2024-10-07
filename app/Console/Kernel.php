@@ -15,6 +15,9 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\ServeCommand::class,
         Commands\KeyGenerateCommand::class,
+        Commands\DockerUpCommand::class,
+        Commands\DockerDownCommand::class,
+        Commands\DockerPullCommand::class,
     ];
 
     /**
