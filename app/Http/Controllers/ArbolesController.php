@@ -125,33 +125,45 @@ class ArbolesController extends Controller
         }
 
         if (!empty($request->input('user_sabores')) && ($request->input('user_sabores'))) {
-            $arboles->where(function ($query) {
+            $arboles->whereHas('species', function($query) {
                 $query->where('comestible', 'Sí')->orWhere('medicinal', 'Sí');
             });
         }
 
         if (!empty($request->input('user_origen')) && ($request->input('user_origen'))) {
-            $arboles->where('origen', 'like', '%'.$request->input('user_origen').'%');
+            $arboles->whereHas('species', function($query) {
+                $query->where('origen', 'like', '%'.$request->input('user_origen').'%');
+            });
         }
 
         if (!empty($request->input('borigen_pampeana')) && ($request->input('borigen_pampeana'))) {
-            $arboles->where('region_pampeana', true);
+            $arboles->whereHas('species', function($query) {
+                $query->where('region_pampeana', true);
+            });
         }
 
         if (!empty($request->input('borigen_nea')) && ($request->input('borigen_nea'))) {
-            $arboles->where('region_nea', true);
+            $arboles->whereHas('species', function($query) {
+                $query->where('region_nea', true);
+            });
         }
 
         if (!empty($request->input('borigen_noa')) && ($request->input('borigen_noa'))) {
-            $arboles->where('region_noa', true);
+            $arboles->whereHas('species', function($query) {
+                $query->where('region_noa', true);
+            });
         }
 
         if (!empty($request->input('borigen_cuyana')) && ($request->input('borigen_cuyana'))) {
-            $arboles->where('region_cuyana', true);
+            $arboles->whereHas('species', function($query) {
+                $query->where('region_cuyana', true);
+            });
         }
 
         if (!empty($request->input('borigen_patagonica')) && ($request->input('borigen_patagonica'))) {
-            $arboles->where('region_patagonica', true);
+            $arboles->whereHas('species', function($query) {
+                $query->where('region_patagonica', true);
+            });
         }
 
         if ((!empty($request->input('user_latlng'))) &&
