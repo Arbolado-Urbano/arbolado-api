@@ -131,7 +131,7 @@ class ArbolesController extends Controller
         }
 
         if (!empty($request->input('user_origen')) && ($request->input('user_origen'))) {
-            $arboles->whereHas('species', function($query) {
+            $arboles->whereHas('species', function($query) use ($request) {
                 $query->where('origen', 'like', '%'.$request->input('user_origen').'%');
             });
         }
