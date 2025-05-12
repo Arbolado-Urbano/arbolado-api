@@ -79,7 +79,7 @@ class ArbolesController extends Controller
 
             // Email admin
             $email = new AporteCorreo($data);
-            $email->subject('Nuevo aprote Arbolado Urbano');
+            $email->subject('Nuevo aporte Arbolado Urbano');
             if (isset($data['images']) && $data['images'] !== "") {
                 try {
                     foreach ($data['images'] as $index => $image) {
