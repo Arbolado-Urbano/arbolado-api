@@ -14,7 +14,7 @@
 */
 
 $router->get('/', function () use ($router) {
-    return $router->app->version();
+    return "Arbolado Urbano API V1.0.0";
 });
 
 $router->get('/fuentes/{slug}', 'ArbolesController@getSource');
