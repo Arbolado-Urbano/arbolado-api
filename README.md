@@ -26,7 +26,11 @@
       1. Ejecutar el comando `php artisan docker:pull` para descargar las últimas versiones de las imágenes de Docker necesarias.
       2. Ejecutar el comando `php artisan docker:up` para levantar una instancia de la base de datos con Docker.
 4. Ejecutar el comando `php artisan migrate` para inicializar la base de datos.
-5. Opcional: Si se desea cargar la base de datos, obtener una copia de la base de datos en formato SQL y ejectuar el comando `docker exec -i arbolado-api-db-1 mysql -v -u root arbolado < [backup.sql]` donde `[backup.sql]` es la ruta al archivo SQL **(Nota: El archivo SQL debe contener únicamente los datos de la base y no la estructura)**.
+5. Opcional: Si se desea cargar la base de datos, obtener una copia de la base de datos en formato SQL y ejectuar el comando `docker exec -i arbolado-api-db-1 mysql -u root arbolado < [backup.sql]` donde `[backup.sql]` es la ruta al archivo SQL.
+- Notas:
+        - El archivo SQL debe contener únicamente los datos de la base y no la estructura.
+        - Al exportar los datos de la base asegurarse de que los chequeos de claves foráneas están deshabilitados (`Disable foreign key checks`).
+        - No exportar la tabla `migrations` si existe.
 
 ## Ejecución para desarrollo
 
