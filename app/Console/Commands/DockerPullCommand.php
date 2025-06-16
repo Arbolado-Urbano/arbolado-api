@@ -29,6 +29,6 @@ class DockerPullCommand extends Command
      */
     public function handle()
     {
-        shell_exec("docker compose -p arbolado pull");
+        shell_exec("docker compose -p arbolado-api pull");
     }
 }
