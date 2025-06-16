@@ -29,6 +29,6 @@ class DockerUpCommand extends Command
      */
     public function handle()
     {
-        shell_exec("docker compose -p arbolado -f ./docker-compose.yml up -d");
+        shell_exec("docker compose -p arbolado-api -f ./docker-compose.yml up -d");
     }
 }

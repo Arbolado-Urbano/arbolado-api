@@ -29,6 +29,6 @@ class DockerDownCommand extends Command
      */
     public function handle()
     {
-        shell_exec("docker compose -p arbolado down");
+        shell_exec("docker compose -p arbolado-api down");
     }
 }
