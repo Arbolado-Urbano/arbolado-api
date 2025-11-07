@@ -235,10 +235,9 @@ class ArbolesController extends Controller
     private function verificarCaptcha($captcha)
     {
         $captchaSecret = env('CAPTCHA_SECRET_KEY');
-        $captchaData = "secret=$captchaSecret&response=$captcha";
         $captchaRes = [];
         try {
-            $captchaRes = Http::post("https://www.google.com/recaptcha/api/siteverify?$captchaData")->json();
+            $captchaRes = Http::post("https://challenges.cloudflare.com/turnstile/v0/siteverify", [ "secret" => $captchaSecret, "response" => $captcha ])->json();
         } catch (\Throwable $th) {
             return false;
         }
