@@ -3,7 +3,7 @@
 namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
-use Laravel\Lumen\Console\Kernel as ConsoleKernel;
+use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
@@ -13,8 +13,6 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        Commands\ServeCommand::class,
-        Commands\KeyGenerateCommand::class,
         Commands\DockerUpCommand::class,
         Commands\DockerDownCommand::class,
         Commands\DockerPullCommand::class,

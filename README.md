@@ -20,13 +20,14 @@
 
 1. Crear un archivo .env y copiar el contenido de .env.example reemplazando los valores de las variables de ser necesario.
 2. Ejecutar el comando `composer install` para instalar las dependencias del proyecto.
-3. Levantar una instancia de una base de datos [MySQL](https://www.mysql.com/). Para esto hay 2 opciones:
+3. Ejecutar el comando `php artisan key:generate` para generar una clave de aplicación.
+4. Levantar una instancia de una base de datos [MySQL](https://www.mysql.com/). Para esto hay 2 opciones:
     - Hacerlo manualmente instalando MySQL y creando una base de datos.
     - Levantar un container de Docker con la base de datos:
       1. Ejecutar el comando `php artisan docker:pull` para descargar las últimas versiones de las imágenes de Docker necesarias.
       2. Ejecutar el comando `php artisan docker:up` para levantar una instancia de la base de datos con Docker.
-4. Ejecutar el comando `php artisan migrate` para inicializar la base de datos.
-5. Opcional: Si se desea cargar la base de datos, obtener una copia de la base de datos en formato SQL y ejectuar el comando `docker exec -i arbolado-api-db-1 mysql -u root arbolado < [backup.sql]` donde `[backup.sql]` es la ruta al archivo SQL.
+5. Ejecutar el comando `php artisan migrate` para inicializar la base de datos.
+6. Opcional: Si se desea cargar la base de datos, obtener una copia de la base de datos en formato SQL y ejectuar el comando `docker exec -i arbolado-api-db-1 mysql -u root arbolado < [backup.sql]` donde `[backup.sql]` es la ruta al archivo SQL.
 - Notas:
         - El archivo SQL debe contener únicamente los datos de la base y no la estructura.
         - Al exportar los datos de la base asegurarse de que los chequeos de claves foráneas están deshabilitados (`Disable foreign key checks`).
