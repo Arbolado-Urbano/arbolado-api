@@ -1,4 +1,4 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.5-fpm-alpine
 
 ARG DB_HOST="localhost"
 ARG DB_PORT="3306"
