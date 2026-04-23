@@ -24,6 +24,7 @@ class Aportes extends Migration
       $table->integer('inclinacion')->nullable();
       $table->string('estado_fitosanitario')->nullable();
       $table->string('etapa_desarrollo')->nullable();
+      $table->text('notas')->nullable();
       $table->unsignedInteger('fuente_id');
       $table->unsignedInteger('especie_id')->nullable();
       $table->tinyInteger('cargado')->nullable();
