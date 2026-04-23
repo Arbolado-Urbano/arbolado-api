@@ -15,6 +15,7 @@ class Arboles extends Migration
     {
       Schema::create('arboles', function (Blueprint $table) {
         $table->increments('id');
+        $table->string('id_fuente')->nullable();
         $table->float('lat', 12, 10)->nullable();
         $table->float('lng', 12, 10)->nullable();
         $table->string('localidad')->default('CABA');

@@ -16,6 +16,7 @@ class Fuentes extends Migration
     Schema::create('fuentes', function (Blueprint $table) {
       $table->increments('id');
       $table->string('nombre');
+      $table->string('slug')->nullable()->unique();
       $table->text('descripcion')->nullable();
       $table->string('email')->nullable();
       $table->string('facebook')->nullable();

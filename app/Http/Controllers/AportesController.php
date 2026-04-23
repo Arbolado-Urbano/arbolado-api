@@ -73,6 +73,7 @@ class AportesController extends Controller
                     'etapa_desarrollo' => isset($data['development']) && $data['development'] !== "" ? $data['development'] : null,
                     'fuente_id' => $fuenteId,
                     'especie_id' => isset($data['speciesId']) && $data['speciesId'] !== "" ? $data['speciesId'] : null,
+                    'notas' => isset($data['notes']) && $data['notes'] !== "" ? $data['notes'] : null,
                 ]);
             });
 
