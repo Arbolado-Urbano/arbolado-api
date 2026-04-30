@@ -13,7 +13,18 @@ class Registro extends Model
      *
      * @var array
      */
-    protected $fillable = [];
+    protected $fillable = [
+        'altura',
+        'diametro_a_p',
+        'diametro_copa',
+        'inclinacion',
+        'estado_fitosanitario',
+        'etapa_desarrollo',
+        'notas',
+        'arbol_id',
+        'usuario_id',
+        'fuente_id',
+    ];
 
     /**
      * The attributes excluded from the model's JSON form.

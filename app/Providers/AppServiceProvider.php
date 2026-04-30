@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\CaptchaService;
+
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Http\Client\Response;
 
@@ -12,7 +14,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(CaptchaService::class, function () {
+            return new CaptchaService(config('services.captcha.secret'));
+        });
     }
 
     /**

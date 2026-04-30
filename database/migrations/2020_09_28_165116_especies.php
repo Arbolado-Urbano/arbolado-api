@@ -46,8 +46,8 @@ class Especies extends Migration
         $table->integer('riego')->nullable();
         $table->text('biblio_img_fuentes')->nullable();
         $table->string('url')->nullable();
-        $table->unsignedInteger('familia_id');
-        $table->unsignedInteger('tipo_id');
+        $table->unsignedInteger('familia_id')->nullable();
+        $table->unsignedInteger('tipo_id')->nullable();
         $table->timestamps();
       });
 

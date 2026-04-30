@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Especie;
 use App\Models\Arbol;
+use App\Models\Registro;
+use App\Models\Usuario;
+
+use App\Services\CaptchaService;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 
 class ArbolesController extends Controller
 {
@@ -82,7 +87,7 @@ class ArbolesController extends Controller
           ($request->input('radio'))
         ) {
             $radio = $request->input('radio');
-            $user_latlng = explode(" ", $request->input('user_latlng'));
+            $user_latlng = explode(' ', $request->input('user_latlng'));
             $user_lat = $user_latlng[0];
             $user_lng = $user_latlng[1];
             if (($user_lat) && ($user_lng) && is_numeric($user_lat) && is_numeric($user_lng) && (is_numeric($radio))) {
@@ -120,5 +125,78 @@ class ArbolesController extends Controller
         ])->where('arboles.id', $id)->first();
         if (!$tree) return response('', 404);
         return response()->json($tree);
+    }
+
+     /**
+   * Agregar un nuevo árbol
+   *
+   * @param  $data - Datos del árbol
+   * @return Response - JSON con los detalles del árbol.
+   */
+    public function add(Request $request, CaptchaService $captchaService)
+    {
+        $data = json_decode($request->getContent(), true);
+        $especieId = isset($data['speciesId']) && $data['speciesId'] !== '' ? $data['speciesId'] : null;
+        if ((!isset($data['code']) || !$data['code']) ||
+            (!isset($data['coordinates']) || !$data['coordinates']) ||
+            ((!isset($data['species']) || !$data['species']) && (!$especieId))
+        ) {
+            return response('', 422);
+        }
+        
+        $latLng = explode(',', $data['coordinates']);
+        if (count($latLng) < 2) {
+            return response('', 422);
+        }
+
+        if (!$captchaService->verify($data['captcha'])) {
+            return response('', 422);
+        }
+
+        $user = Usuario::select(['id', 'fuente_id'])->where('usuarios.codigo', $data['code'])->first();
+        if (!$user) return response('', 401);
+
+        try {
+            DB::transaction(function () use ($data, $latLng, $especieId, $user) {
+                // Si se ingresó una nueva especie crearla
+                if (!$especieId) {
+                    $especieId = Especie::create([
+                        // Por el chequeo inicial si "speciesId" no está definido entonces "species" si está definido.
+                        'nombre_cientifico' => $data['species'],
+                    ])->id;
+                }
+                $index = 1;
+                $idCensoBase = "$data[block]$data[orientation]";
+                do {
+                    $idCenso = "$idCensoBase$index";
+                    $arbol = Arbol::select(['arboles.id'])->where('arboles.id_censo', $idCenso)->first();
+                    $index++;
+                } while ($arbol);
+                $arbol = Arbol::create([
+                    'lat' => $latLng[0],
+                    'lng' => $latLng[1],
+                    'id_censo' => $idCenso,
+                    'localidad' => 'Colón',
+                    'especie_id' => $especieId,
+                ]);
+                Registro::create([
+                    'altura' => isset($data['height']) && $data['height'] !== '' ? $data['height'] : null,
+                    'diametro_a_p' => isset($data['diameterTrunk']) && $data['diameterTrunk'] !== '' ? $data['diameterTrunk'] : null,
+                    'diametro_copa' => isset($data['diameterCanopy']) && $data['diameterCanopy'] !== '' ? $data['diameterCanopy'] : null,
+                    'inclinacion' => isset($data['inclination']) && $data['inclination'] !== '' ? $data['inclination'] : null,
+                    'estado_fitosanitario' => isset($data['health']) && $data['health'] !== '' ? $data['health'] : null,
+                    'etapa_desarrollo' => isset($data['development']) && $data['development'] !== '' ? $data['development'] : null,
+                    'notas' => isset($data['notes']) && $data['notes'] !== '' ? $data['notes'] : null,
+                    'arbol_id' => $arbol->id,
+                    'usuario_id' => $user->id,
+                    'fuente_id' => $user->fuente_id,
+                ]);
+            });
+            return response('', 200);
+        } catch (\Throwable $th) {
+            \Log::debug($user->fuente_id);
+            \Log::debug($th);
+            return response('', 500);
+        }
     }
 }
