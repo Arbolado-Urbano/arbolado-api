@@ -17,7 +17,12 @@ class Usuarios extends Migration
       $table->increments('id');
       $table->string('codigo')->unique();
       $table->string('nombre')->nullable();
+      $table->unsignedInteger('fuente_id');
       $table->timestamps();
+    });
+
+    Schema::table('usuarios', function ($table) {
+      $table->foreign('fuente_id')->references('id')->on('fuentes')->onDelete('cascade');
     });
   }
 

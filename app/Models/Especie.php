@@ -13,7 +13,7 @@ class Especie extends Model
      *
      * @var array
      */
-    protected $fillable = [];
+    protected $fillable = ['nombre_cientifico'];
 
     /**
      * The attributes excluded from the model's JSON form.

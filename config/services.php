@@ -14,6 +14,10 @@ return [
     |
     */
 
+    'captcha' => [
+        'secret' => env('CAPTCHA_SECRET_KEY'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

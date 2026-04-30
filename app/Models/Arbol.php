@@ -13,7 +13,16 @@ class Arbol extends Model
      *
      * @var array
      */
-    protected $fillable = [];
+    protected $fillable = [
+        'lat',
+        'lng',
+        'id_censo',
+        'localidad',
+        'calle',
+        'calle_altura',
+        'espacio_verde',
+        'especie_id',
+    ];
 
     /**
      * The attributes excluded from the model's JSON form.

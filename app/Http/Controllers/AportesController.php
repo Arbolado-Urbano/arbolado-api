@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Fuente;
 use App\Models\Aporte;
 
+use App\Services\CaptchaService;
+
 use App\Mail\Aporte as AporteCorreo;
 use App\Mail\AporteConfirmacion as AporteConfirmacionCorreo;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
 class AportesController extends Controller
@@ -31,7 +32,7 @@ class AportesController extends Controller
    * @param  $data - Datos del aporte
    * @return Response - JSON con los detalles del aporte.
    */
-    public function add(Request $request)
+    public function add(Request $request, CaptchaService $captchaService)
     {
         $data = json_decode($request->getContent(), true);
         if ((!isset($data['email']) || !$data['email']) ||
@@ -39,19 +40,20 @@ class AportesController extends Controller
             (!isset($data['coordinates']) || !$data['coordinates']) ||
             ((!isset($data['species']) || !$data['species']) && (!isset($data['speciesId']) || !$data['speciesId']))
         ) {
-            return response('', 400);
+            return response('', 422);
         }
+        
         $latLng = explode(',', $data['coordinates']);
         if (count($latLng) < 2) {
-            return response('', 400);
+            return response('', 422);
         }
 
         if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            return response('', 400);
+            return response('', 422);
         }
 
-        if (!$this->verificarCaptcha($data['captcha'])) {
-            return response('', 400);
+        if (!$captchaService->verify($data['captcha'])) {
+            return response('', 422);
         }
 
         try {
@@ -107,17 +109,5 @@ class AportesController extends Controller
         } catch (\Throwable $th) {
             return response('', 500);
         }
-    }
-
-    private function verificarCaptcha($captcha)
-    {
-        $captchaSecret = env('CAPTCHA_SECRET_KEY');
-        $captchaRes = [];
-        try {
-            $captchaRes = Http::post("https://challenges.cloudflare.com/turnstile/v0/siteverify", [ "secret" => $captchaSecret, "response" => $captcha ])->json();
-        } catch (\Throwable $th) {
-            return false;
-        }
-        return $captchaRes['success'];
     }
 }

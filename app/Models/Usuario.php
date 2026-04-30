@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Fuente extends Model
+class Usuario extends Model
 {
-    protected $table = 'fuentes';
+    protected $table = 'usuarios';
 
     /**
      * The attributes that are mass assignable.
@@ -20,15 +20,15 @@ class Fuente extends Model
      *
      * @var array
      */
-    protected $hidden = ['email'];
+    protected $hidden = [];
 
     public function records()
     {
-        return $this->hasMany('App\Models\Registro', 'fuente_id');
+        return $this->hasMany('App\Models\Registro', 'usuario_id');
     }
 
-    public function users()
+    public function source()
     {
-        return $this->hasMany('App\Models\Usuario', 'fuente_id');
+        return $this->belongsTo('App\Models\Fuente', 'fuente_id');
     }
 }

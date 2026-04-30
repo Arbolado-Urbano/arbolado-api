@@ -16,5 +16,6 @@ Route::get('/fuentes/{slug}', [FuentesController::class, 'getTrees']);
 Route::get('/especies', [EspeciesController::class, 'list']);
 Route::get('/arboles', [ArbolesController::class, 'list']);
 Route::get('/arboles/{id}', [ArbolesController::class, 'get']);
-Route::post('/arboles', [AportesController::class, 'add']);
+Route::post('/arboles', [ArbolesController::class, 'add']);
+Route::post('/aportes', [AportesController::class, 'add']);
 Route::post('/identificar', [IdentifyController::class, 'post']);
