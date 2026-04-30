@@ -194,8 +194,6 @@ class ArbolesController extends Controller
             });
             return response('', 200);
         } catch (\Throwable $th) {
-            \Log::debug($user->fuente_id);
-            \Log::debug($th);
             return response('', 500);
         }
     }
