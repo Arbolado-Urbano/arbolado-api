@@ -10,18 +10,18 @@ class Pendientes extends Mailable
 {
     use Queueable, SerializesModels;
 
-    private $especiesCount;
-    private $aportesCount;
+    private $especies;
+    private $aportes;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($especiesCount, $aportesCount)
+    public function __construct($especies, $aportes)
     {
-        $this->especiesCount = $especiesCount;
-        $this->aportesCount = $aportesCount;
+        $this->especies = $especies;
+        $this->aportes = $aportes;
     }
 
     /**
@@ -31,6 +31,6 @@ class Pendientes extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.pendientes', ['especiesCount' => $this->especiesCount, 'aportesCount' => $this->aportesCount]);
+        return $this->markdown('emails.pendientes', ['especies' => $this->especies, 'aportes' => $this->aportes]);
     }
 }
