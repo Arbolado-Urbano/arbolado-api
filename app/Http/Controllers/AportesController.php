@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Fuente;
 use App\Models\Aporte;
+use App\Models\Especie;
 
 use App\Services\CaptchaService;
 
@@ -29,12 +30,12 @@ class AportesController extends Controller
     /**
    * Agregar un nuevo aporte
    *
-   * @param  $data - Datos del aporte
-   * @return Response - JSON con los detalles del aporte.
+   * @param  \Illuminate\Http\Request $request
+   * @return Response
    */
     public function add(Request $request, CaptchaService $captchaService)
     {
-        $data = json_decode($request->getContent(), true);
+        $data = $request->all();
         if ((!isset($data['email']) || !$data['email']) ||
             (!isset($data['name']) || !$data['name']) ||
             (!isset($data['coordinates']) || !$data['coordinates']) ||
@@ -58,7 +59,7 @@ class AportesController extends Controller
 
         try {
             DB::transaction(function () use ($data, $latLng) {
-                $url = isset($data['website']) && $data['website'] !== "" ? $data['website'] : null;
+                $url = isset($data['website']) && $data['website'] !== '' ? $data['website'] : null;
                 Fuente::upsert([
                     ['nombre' => $data['name'], 'email' => $data['email'], 'url' => $url],
                 ], uniqueBy: ['email'], update: ['nombre', 'url']);
@@ -66,47 +67,58 @@ class AportesController extends Controller
                 Aporte::create([
                     'lat' => $latLng[0],
                     'lng' => $latLng[1],
-                    'especie' => isset($data['species']) && $data['species'] !== "" ? $data['species'] : null,
-                    'altura' => isset($data['height']) && $data['height'] !== "" ? $data['height'] : null,
-                    'diametro_a_p' => isset($data['diameterTrunk']) && $data['diameterTrunk'] !== "" ? $data['diameterTrunk'] : null,
-                    'diametro_copa' => isset($data['diameterCanopy']) && $data['diameterCanopy'] !== "" ? $data['diameterCanopy'] : null,
-                    'inclinacion' => isset($data['inclination']) && $data['inclination'] !== "" ? $data['inclination'] : null,
-                    'estado_fitosanitario' => isset($data['health']) && $data['health'] !== "" ? $data['health'] : null,
-                    'etapa_desarrollo' => isset($data['development']) && $data['development'] !== "" ? $data['development'] : null,
+                    'especie' => isset($data['species']) && $data['species'] !== '' ? $data['species'] : null,
+                    'altura' => isset($data['height']) && $data['height'] !== '' ? $data['height'] : null,
+                    'diametro_a_p' => isset($data['diameterTrunk']) && $data['diameterTrunk'] !== '' ? $data['diameterTrunk'] : null,
+                    'diametro_copa' => isset($data['diameterCanopy']) && $data['diameterCanopy'] !== '' ? $data['diameterCanopy'] : null,
+                    'inclinacion' => isset($data['inclination']) && $data['inclination'] !== '' ? $data['inclination'] : null,
+                    'estado_fitosanitario' => isset($data['health']) && $data['health'] !== '' ? $data['health'] : null,
+                    'etapa_desarrollo' => isset($data['development']) && $data['development'] !== '' ? $data['development'] : null,
                     'fuente_id' => $fuenteId,
-                    'especie_id' => isset($data['speciesId']) && $data['speciesId'] !== "" ? $data['speciesId'] : null,
-                    'notas' => isset($data['notes']) && $data['notes'] !== "" ? $data['notes'] : null,
+                    'especie_id' => isset($data['speciesId']) && $data['speciesId'] !== '' ? $data['speciesId'] : null,
+                    'notas' => isset($data['notes']) && $data['notes'] !== '' ? $data['notes'] : null,
                 ]);
             });
 
             // Email admin
+            if (isset($data['speciesId']) && $data['speciesId'] !== '') {
+                $especie = Especie::select(['nombre_cientifico', 'nombre_comun'])->where('id', $data['speciesId'])->first();
+                $data['species'] = $especie->nombre_comun ? $especie->nombre_comun . ' (' . $especie->nombre_cientifico . ')' : $especie->nombre_cientifico;
+            }
             $email = new AporteCorreo($data);
-            $email->subject('Nuevo aporte Arbolado Urbano');
-            if (isset($data['images']) && $data['images'] !== "") {
+            $email->subject('Nuevo aporte | Arbolado Urbano');
+            if ($request->hasFile('species-images')) {
+                $images = $request->file('species-images');
                 try {
-                    foreach ($data['images'] as $index => $image) {
-                        $imageData = explode(",", $image);
-                        $imageType = explode(";", explode(":", $imageData[0])[1])[0];
-                        $email->attachData(base64_decode($imageData[1]), "imagen_$index", ['mime' => $imageType]);
+                    foreach ($images as $index => $image) {
+                        $email->attach($image->getRealPath(), ['as' => "imagen_$index", 'mime' => $image->getMimeType()]);
                     }
                 } catch (\Throwable $th) {
+                    \Log::error('Nuevo aporte - error adjuntando fotos para email:');
+                    \Log::error($th);
                 }
             }
             try {
                 Mail::to(config('mail.admin_email'))->send($email);
             } catch (\Throwable $th) {
+                \Log::error('Nuevo aporte - error al enviar email a admin:');
+                \Log::error($th);
             }
 
             // Email usuario
             $emailConfirmacion = new AporteConfirmacionCorreo($data);
-            $emailConfirmacion->subject('Nuevo aporte Arbolado Urbano');
+            $emailConfirmacion->subject('Nuevo aporte | Arbolado Urbano');
             try {
                 Mail::to($data['email'])->send($emailConfirmacion);
             } catch (\Throwable $th) {
+                \Log::error('Nuevo árbol - error al enviar email a usuario:');
+                \Log::error($th);
             }
 
             return response('', 200);
         } catch (\Throwable $th) {
+            \Log::error('Nuevo aporte - error al crear nuevo aporte:');
+            \Log::error($th);
             return response('', 500);
         }
     }

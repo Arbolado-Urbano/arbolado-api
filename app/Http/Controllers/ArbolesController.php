@@ -9,8 +9,11 @@ use App\Models\Usuario;
 
 use App\Services\CaptchaService;
 
+use App\Mail\NuevoArbol as NuevoArbolCorreo;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class ArbolesController extends Controller
 {
@@ -130,12 +133,12 @@ class ArbolesController extends Controller
      /**
    * Agregar un nuevo árbol
    *
-   * @param  $data - Datos del árbol
-   * @return Response - JSON con los detalles del árbol.
+   * @param  \Illuminate\Http\Request $request
+   * @return Response
    */
     public function add(Request $request, CaptchaService $captchaService)
     {
-        $data = json_decode($request->getContent(), true);
+        $data = $request->all();
         $especieId = isset($data['speciesId']) && $data['speciesId'] !== '' ? $data['speciesId'] : null;
         if ((!isset($data['code']) || !$data['code']) ||
             (!isset($data['coordinates']) || !$data['coordinates']) ||
@@ -153,33 +156,34 @@ class ArbolesController extends Controller
             return response('', 422);
         }
 
-        $user = Usuario::select(['id', 'fuente_id'])->where('usuarios.codigo', $data['code'])->first();
+        $user = Usuario::select(['id', 'nombre', 'codigo', 'fuente_id'])->where('usuarios.codigo', $data['code'])->first();
         if (!$user) return response('', 401);
 
         try {
-            DB::transaction(function () use ($data, $latLng, $especieId, $user) {
+            DB::transaction(function () use ($data, $latLng, $especieId, $user, $request) {
                 // Si se ingresó una nueva especie crearla
                 if (!$especieId) {
-                    $especieId = Especie::create([
+                    $especieId = Especie::firstOrCreate([
                         // Por el chequeo inicial si "speciesId" no está definido entonces "species" si está definido.
                         'nombre_cientifico' => $data['species'],
                     ])->id;
                 }
                 $index = 1;
-                $idCensoBase = "$data[block]$data[orientation]";
+                $idCensoBase = strtoupper("$data[block]$data[orientation]");
                 do {
                     $idCenso = "$idCensoBase$index";
                     $arbol = Arbol::select(['arboles.id'])->where('arboles.id_censo', $idCenso)->first();
                     $index++;
                 } while ($arbol);
-                $arbol = Arbol::create([
+                $treeData = [
                     'lat' => $latLng[0],
                     'lng' => $latLng[1],
                     'id_censo' => $idCenso,
                     'localidad' => 'Colón',
                     'especie_id' => $especieId,
-                ]);
-                Registro::create([
+                ];
+                $arbol = Arbol::create($treeData);
+                $recordData = [
                     'altura' => isset($data['height']) && $data['height'] !== '' ? $data['height'] : null,
                     'diametro_a_p' => isset($data['diameterTrunk']) && $data['diameterTrunk'] !== '' ? $data['diameterTrunk'] : null,
                     'diametro_copa' => isset($data['diameterCanopy']) && $data['diameterCanopy'] !== '' ? $data['diameterCanopy'] : null,
@@ -190,10 +194,43 @@ class ArbolesController extends Controller
                     'arbol_id' => $arbol->id,
                     'usuario_id' => $user->id,
                     'fuente_id' => $user->fuente_id,
+                ];
+                Registro::create($recordData);
+                // Email admin
+                $especie = Especie::select(['nombre_cientifico', 'nombre_comun'])->where('id', $especieId)->first();
+                $emailData = array_merge($treeData, $recordData, [
+                    'block' => $data['block'],
+                    'orientation' => $data['orientation'],
+                    'especie_nombre_cientifico' => $especie->nombre_cientifico,
+                    'especie_nombre_comun' => $especie->nombre_comun,
+                    'censista_nombre' => $user->nombre,
+                    'censista_codigo' => $user->codigo,
                 ]);
+                $email = new NuevoArbolCorreo($emailData);
+                $email->subject('Nuevo árbol | Arbolado Urbano');
+                if ($request->hasFile('images')) {
+                    $images = $request->file('images');
+                    try {
+                        foreach ($images as $index => $image) {
+                            $imageName = $idCenso.'-'.($index + 1);
+                            $email->attach($image->getRealPath(), ['as' => $imageName, 'mime' => $image->getMimeType()]);
+                        }
+                    } catch (\Throwable $th) {
+                        \Log::error('Nuevo árbol - error adjuntando fotos para email:');
+                        \Log::error($th);
+                    }
+                }
+                try {
+                    Mail::to(config('mail.admin_email'))->send($email);
+                } catch (\Throwable $th) {
+                    \Log::error('Nuevo árbol - error al enviar email:');
+                    \Log::error($th);
+                }
             });
             return response('', 200);
         } catch (\Throwable $th) {
+            \Log::error('Nuevo árbol - error al crear nuevo árbol:');
+            \Log::error($th);
             return response('', 500);
         }
     }
