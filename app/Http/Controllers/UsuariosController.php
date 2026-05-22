@@ -12,22 +12,22 @@ class UsuariosController extends Controller
 {
 
     /**
-   * Valida la existencia o no de un código de usuario
+   * Retorna la fuente a la que pertenece un usuario
    *
    * @param  \Illuminate\Http\Request $request
    * @param  App\Services\CaptchaService $captchaService
-   * @param  string $code - El código del usuario
-   * @return \Illuminate\Http\Response 204 si el código fue encontrado, 404 si no existe, 422 si la validación de captcha falla
+   * @return \Illuminate\Http\Response La fuente si el código fue encontrado, 404 si no existe, 422 si la validación de captcha falla
    */
-    public function codeExists(Request $request, CaptchaService $captchaService, string $code)
+    public function get(Request $request, CaptchaService $captchaService)
     {
-        $data = $request->validate(['captcha' => 'required|string']);
-        if (!$code || !$captchaService->verify($data['captcha'])) {
+        $data = $request->validate(['captcha' => 'required|string', 'code' => 'required|string']);
+        if (!$captchaService->verify($data['captcha'])) {
             abort(422);
         }
-        if (!Usuario::where('usuarios.codigo', $code)->exists()) {
+        $user = Usuario::where('usuarios.codigo', $data['code'])->with('source')->first();
+        if (!$user) {
             abort(404);
         }
-        return response()->noContent();
+        return response($user->source->slug);
     }
 }
