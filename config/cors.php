@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['GET', 'PUT', 'POST', 'DELETE'],
 
-    'allowed_origins' => ['http://localhost:5173', 'https://arboladourbano.com'],
+    'allowed_origins' => ['http://localhost:5173', 'https://arboladourbano.com', 'https://staging.arboladourbano.com'],
 
     'allowed_origins_patterns' => [],
 
