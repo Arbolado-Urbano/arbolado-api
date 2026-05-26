@@ -16,6 +16,7 @@ return [
 
     'captcha' => [
         'secret' => env('CAPTCHA_SECRET_KEY'),
+        'url' => env('CAPTCHA_URL'),
     ],
 
     'postmark' => [

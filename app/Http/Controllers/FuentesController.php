@@ -7,21 +7,11 @@ use App\Models\Arbol;
 class FuentesController extends Controller
 {
     /**
-     * Create a new controller instance.
+     * Mostar árboles de una fuente
      *
-     * @return void
+     * @param  $slud - Slug de la fuente
+     * @return \Illuminate\Http\Response - JSON con una lista de todos los árobles provistos por la fuente.
      */
-    public function __construct()
-    {
-        //
-    }
-
-    /**
-   * Mostar árboles de una fuente
-   *
-   * @param  $slud - Slug de la fuente
-   * @return Response - JSON con una lista de todos los árobles provistos por la fuente.
-   */
     public function getTrees($slug)
     {
         $arboles = Arbol::select(['id', 'lat', 'lng', 'especie_id'])

@@ -17,7 +17,8 @@ Schedule::call(function () {
         try {
             Mail::to(config('mail.admin_email'))->send($email);
         } catch (\Throwable $th) {
-            \Log::debug($th);
+            \Log::error('Job error - error al enviar informe diario al administrador:');
+            \Log::error($th);
         }
     }
 })->daily();

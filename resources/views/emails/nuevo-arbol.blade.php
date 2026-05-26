@@ -22,42 +22,42 @@
   <li>
     <b>Especie:</b> {{ !empty($data['especie_nombre_comun']) ? $data['especie_nombre_comun'] . ' (' . $data['especie_nombre_cientifico'] . ')' : $data['especie_nombre_cientifico'] }}
   </li>
-  @if (!empty($data['altura']))
+  @isset($data['altura'])
     <li>
       <b>Altura:</b> {{$data['altura']}}m
     </li>
-  @endif
-  @if (!empty($data['diametro_a_p']))
+  @endisset
+  @isset($data['diametro_a_p'])
     <li>
       <b>Diámetro tronco:</b> {{$data['diametro_a_p']}}m
     </li>
-  @endif
-  @if (!empty($data['diametro_copa']))
+  @endisset
+  @isset($data['diametro_copa'])
     <li>
       <b>Diámetro copa:</b> {{$data['diametro_copa']}}m
     </li>
-  @endif
-  @if (!empty($data['inclinacion']))
+  @endisset
+  @isset($data['inclinacion'])
     <li>
       <b>Inclinación:</b> {{$data['inclinacion']}}º
     </li>
-  @endif
-  @if (!empty($data['estado_fitosanitario']))
+  @endisset
+  @isset($data['estado_fitosanitario'])
     <li>
       <b>Estado fitosanitario:</b> {{ucfirst($data['estado_fitosanitario'])}}
     </li>
-  @endif
-  @if (!empty($data['etapa_desarrollo']))
+  @endisset
+  @isset($data['etapa_desarrollo'])
     <li>
       <b>Etapa de desarrollo:</b> {{ucfirst($data['etapa_desarrollo'])}}
     </li>
-  @endif
-  @if (!empty($data['notas']))
+  @endisset
+  @isset($data['notas'])
     <li>
       <b>Notas:</b><br />
       {!! nl2br(e($data['notas'])) !!}
     </li>
-  @endif
+  @endisset
 </ul>
 
 @endcomponent
