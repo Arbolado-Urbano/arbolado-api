@@ -11,6 +11,8 @@ use App\Services\CaptchaService;
 
 use App\Mail\NuevoArbol as NuevoArbolCorreo;
 
+use App\Rules\CaptchaRule;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -18,21 +20,11 @@ use Illuminate\Support\Facades\Mail;
 class ArbolesController extends Controller
 {
     /**
-     * Create a new controller instance.
+     * Listar todos los árboles
      *
-     * @return void
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response - JSON con una lista de todos los árobles.
      */
-    public function __construct()
-    {
-        //
-    }
-
-    /**
-   * Listar todos los árboles
-   *
-   * @param  \Illuminate\Http\Request $request
-   * @return Response - JSON con una lista de todos los árobles.
-   */
     public function list(Request $request)
     {
         $arboles = Arbol::select(['id', 'lat', 'lng', 'especie_id'])
@@ -102,11 +94,11 @@ class ArbolesController extends Controller
     }
 
     /**
-   * Mostar detalles de un árbol
-   *
-   * @param  $id - ID del árbol
-   * @return Response - JSON con los detalles del árbol.
-   */
+     * Mostar detalles de un árbol
+     *
+     * @param  $id - ID del árbol
+     * @return \Illuminate\Http\Response - JSON con los detalles del árbol.
+     */
     public function get($id)
     {
         $tree = Arbol::select([
@@ -126,42 +118,42 @@ class ArbolesController extends Controller
             'records',
             'records.source',
         ])->where('arboles.id', $id)->first();
-        if (!$tree) return response('', 404);
+        if (!$tree) abort(404);
         return response()->json($tree);
     }
 
-     /**
-   * Agregar un nuevo árbol
-   *
-   * @param  \Illuminate\Http\Request $request
-   * @return Response
-   */
-    public function add(Request $request, CaptchaService $captchaService)
+    /**
+     * Agregar un nuevo árbol
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function add(Request $request)
     {
-        $data = $request->all();
-        $especieId = isset($data['speciesId']) && $data['speciesId'] !== '' ? $data['speciesId'] : null;
-        if ((!isset($data['code']) || !$data['code']) ||
-            (!isset($data['coordinates']) || !$data['coordinates']) ||
-            ((!isset($data['species']) || !$data['species']) && (!$especieId))
-        ) {
-            return response('', 422);
-        }
-        
-        $latLng = explode(',', $data['coordinates']);
-        if (count($latLng) < 2) {
-            return response('', 422);
-        }
-
-        if (!$captchaService->verify($data['captcha'])) {
-            return response('', 422);
-        }
+        $data = $request->validate([
+            'code'           => 'required|string',
+            'coordinates'    => ['required', 'regex:/^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/'],
+            'species'        => 'nullable|required_without:speciesId',
+            'speciesId'      => 'nullable|integer|required_without:species',
+            'captcha'        => ['required', new CaptchaRule()],
+            'block'          => 'required|string',
+            'orientation'    => 'required|string',
+            'height'         => 'nullable|string',
+            'diameterTrunk'  => 'nullable|string',
+            'diameterCanopy' => 'nullable|string',
+            'inclination'    => 'nullable|string',
+            'health'         => 'nullable|string',
+            'development'    => 'nullable|string',
+            'notes'          => 'nullable|string',
+        ]);
 
         $user = Usuario::select(['id', 'nombre', 'codigo', 'fuente_id'])->where('usuarios.codigo', $data['code'])->first();
-        if (!$user) return response('', 401);
+        if (!$user) abort(401);
 
         try {
-            DB::transaction(function () use ($data, $latLng, $especieId, $user, $request) {
+            DB::transaction(function () use ($data, $user, $request) {
                 // Si se ingresó una nueva especie crearla
+                $especieId = $data['speciesId'] ?? null;
                 if (!$especieId) {
                     $especieId = Especie::firstOrCreate([
                         // Por el chequeo inicial si "speciesId" no está definido entonces "species" si está definido.
@@ -175,6 +167,7 @@ class ArbolesController extends Controller
                     $arbol = Arbol::select(['arboles.id'])->where('arboles.id_censo', $idCenso)->first();
                     $index++;
                 } while ($arbol);
+                $latLng = explode(',', $data['coordinates']);
                 $treeData = [
                     'lat' => $latLng[0],
                     'lng' => $latLng[1],
@@ -184,13 +177,13 @@ class ArbolesController extends Controller
                 ];
                 $arbol = Arbol::create($treeData);
                 $recordData = [
-                    'altura' => isset($data['height']) && $data['height'] !== '' ? $data['height'] : null,
-                    'diametro_a_p' => isset($data['diameterTrunk']) && $data['diameterTrunk'] !== '' ? $data['diameterTrunk'] : null,
-                    'diametro_copa' => isset($data['diameterCanopy']) && $data['diameterCanopy'] !== '' ? $data['diameterCanopy'] : null,
-                    'inclinacion' => isset($data['inclination']) && $data['inclination'] !== '' ? $data['inclination'] : null,
-                    'estado_fitosanitario' => isset($data['health']) && $data['health'] !== '' ? $data['health'] : null,
-                    'etapa_desarrollo' => isset($data['development']) && $data['development'] !== '' ? $data['development'] : null,
-                    'notas' => isset($data['notes']) && $data['notes'] !== '' ? $data['notes'] : null,
+                    'altura' => $data['height'] ?? null,
+                    'diametro_a_p' => $data['diameterTrunk'] ?? null,
+                    'diametro_copa' => $data['diameterCanopy'] ?? null,
+                    'inclinacion' => $data['inclination'] ?? null,
+                    'estado_fitosanitario' => $data['health'] ?? null,
+                    'etapa_desarrollo' => $data['development'] ?? null,
+                    'notas' => $data['notes'] ?? null,
                     'arbol_id' => $arbol->id,
                     'usuario_id' => $user->id,
                     'fuente_id' => $user->fuente_id,
@@ -227,11 +220,11 @@ class ArbolesController extends Controller
                     \Log::error($th);
                 }
             });
-            return response('', 200);
+            return response()->json();
         } catch (\Throwable $th) {
             \Log::error('Nuevo árbol - error al crear nuevo árbol:');
             \Log::error($th);
-            return response('', 500);
+            abort(500);
         }
     }
 }
