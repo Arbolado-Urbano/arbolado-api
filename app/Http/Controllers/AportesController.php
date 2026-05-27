@@ -29,8 +29,8 @@ class AportesController extends Controller
             'email'          => 'required|email',
             'name'           => 'required|string',
             'coordinates'    => ['required', 'regex:/^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/'],
-            'species'        => 'nullable|required_without:speciesId',
-            'speciesId'      => 'nullable|integer|required_without:species',
+            'species'        => 'nullable|string|required_without:speciesUrl',
+            'speciesUrl'     => 'nullable|string|required_without:species',
             'captcha'        => ['required', new CaptchaRule()],
             'website'        => 'nullable|string',
             'height'         => 'nullable|string',
@@ -53,6 +53,17 @@ class AportesController extends Controller
                     ],
                 ], uniqueBy: ['email'], update: ['nombre', 'url']);
                 $fuenteId = Fuente::where('email', $data['email'])->first()->id;
+
+                // Por el chequeo inicial si "speciesUrl" no está definido entonces "species" si está definido y vice-versa.
+                $especieId = null;
+                $speciesUrl = $data['speciesUrl'] ?? null;
+                if ($speciesUrl) {
+                    $especie = Especie::select(['id', 'nombre_cientifico', 'nombre_comun'])->where('url', $speciesUrl)->first();
+                    if (!$especie) abort(404);
+                    $especieId = $especie->id;
+                    $data['species'] = $especie->nombre_comun ? $especie->nombre_comun . ' (' . $especie->nombre_cientifico . ')' : $especie->nombre_cientifico;
+                }
+                
                 Aporte::create([
                     'lat' => $latLng[0],
                     'lng' => $latLng[1],
@@ -64,17 +75,10 @@ class AportesController extends Controller
                     'estado_fitosanitario' => $data['health'] ?? null,
                     'etapa_desarrollo' => $data['development'] ?? null,
                     'fuente_id' => $fuenteId,
-                    'especie_id' => $data['speciesId'] ?? null,
+                    'especie_id' => $especieId,
                     'notas' => $data['notes'] ?? null,
                 ]);
             });
-
-            // Por el chequeo inicial si "speciesId" no está definido entonces "species" si está definido y vice-versa.
-            $speciesId = $data['speciesId'] ?? null;
-            if ($speciesId) {
-                $especie = Especie::select(['nombre_cientifico', 'nombre_comun'])->where('id', $speciesId)->first();
-                $data['species'] = $especie->nombre_comun ? $especie->nombre_comun . ' (' . $especie->nombre_cientifico . ')' : $especie->nombre_cientifico;
-            }
             
             // Email admin
             $email = new AporteCorreo($data);
