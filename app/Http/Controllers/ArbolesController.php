@@ -185,8 +185,8 @@ class ArbolesController extends Controller
         $data = $request->validate([
             'code'           => 'required|string',
             'coordinates'    => ['required', 'regex:/^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/'],
-            'species'        => 'nullable|required_without:speciesId',
-            'speciesId'      => 'nullable|integer|required_without:species',
+            'species'        => 'nullable|string|required_without:speciesUrl',
+            'speciesUrl'     => 'nullable|string|required_without:species',
             'captcha'        => ['required', new CaptchaRule()],
             'block'          => 'required|string',
             'orientation'    => 'required|string',
@@ -204,13 +204,18 @@ class ArbolesController extends Controller
 
         try {
             DB::transaction(function () use ($data, $user, $request) {
-                // Si se ingresó una nueva especie crearla
-                $especieId = $data['speciesId'] ?? null;
-                if (!$especieId) {
+                $especieId = null;
+                $especieUrl = $data['speciesUrl'] ?? null;
+                if ($especieUrl) {
+                    $especie = Especie::select(['id'])->where('url', $especieUrl)->first();
+                    if (!$especie) abort(404);
+                    $especieId = $especie->id;
+                } else {
+                    // Si se ingresó una nueva especie crearla
                     $especieId = Especie::firstOrCreate([
-                        // Por el chequeo inicial si "speciesId" no está definido entonces "species" si está definido.
+                        // Por el chequeo inicial si "speciesUrl" no está definido entonces "species" si está definido.
                         'nombre_cientifico' => $data['species'],
-                    ])->id;
+                    ])->url;
                 }
                 $index = 1;
                 $idCensoBase = strtoupper("$data[block]$data[orientation]");
