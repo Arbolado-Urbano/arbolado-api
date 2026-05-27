@@ -7,8 +7,6 @@ use App\Models\Arbol;
 use App\Models\Registro;
 use App\Models\Usuario;
 
-use App\Services\CaptchaService;
-
 use App\Mail\NuevoArbol as NuevoArbolCorreo;
 
 use App\Rules\CaptchaRule;
@@ -20,15 +18,18 @@ use Illuminate\Support\Facades\Mail;
 class ArbolesController extends Controller
 {
     /**
-     * Listar todos los árboles
+     * Listar árboles
      *
      * @param  \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response - JSON con una lista de todos los árobles.
+     * @param  string $format - El formato en que se desean los datos.
+     * @return \Illuminate\Http\Response - JSON o GeoJSON con una lista de los árobles.
      */
-    public function list(Request $request)
+    public function list(Request $request, string $format = '.json')
     {
         $arboles = Arbol::select(['id', 'lat', 'lng', 'especie_id'])
-        ->with('species')->whereNull('removido');
+        ->with(['species' => function($query) {
+            $query->select('id', 'url');
+        }])->whereNull('removido');
 
         if (!empty($request->input('especie_id')) && ($request->input('especie_id'))) {
             $arboles->where('especie_id', $request->input('especie_id'));
@@ -90,7 +91,58 @@ class ArbolesController extends Controller
             }
         }
 
-        return response()->json($arboles->get());
+        $response_headers = [
+            'Content-Type'      => 'application/json',
+            'X-Accel-Buffering' => 'no', // Disables buffering in Nginx
+            'Cache-Control'     => 'no-cache',
+        ];
+
+        return response()->stream(function () use ($arboles, $format) {
+            $first = true;
+            if ($format === '.geojson') {
+                // GeoJSON stream
+                echo '{"type":"FeatureCollection","features":[';
+                $arboles->chunk(500, function ($chunk) use (&$first) {
+                    $buffer = '';
+                    foreach ($chunk as $arbol) {
+                        if (!$first) $buffer .= ',';
+                        $buffer .= sprintf(
+                            '{"type":"Feature","geometry":{"type":"Point","coordinates":[%s,%s]},"properties":{"id":%s,"species":"%s"}}',
+                            $arbol->lng,
+                            $arbol->lat,
+                            $arbol->id,
+                            $arbol->species->url,
+                        );
+                        $first = false;
+                    }
+                    echo $buffer;
+                    ob_flush();
+                    flush();
+                });
+                echo ']}';
+            } else {
+                // JSON stream
+                echo '[';
+                $arboles->chunk(500, function ($chunk) use (&$first) {
+                    $buffer = '';
+                    foreach ($chunk as $arbol) {
+                        if (!$first) $buffer .= ',';
+                        $buffer .= sprintf(
+                            '{"id":%s,"lat":%s,"lng":%s,"species":"%s"}',
+                            $arbol->id,
+                            $arbol->lat,
+                            $arbol->lng,
+                            $arbol->species->url,
+                        );
+                        $first = false;
+                    }
+                    echo $buffer;
+                    ob_flush();
+                    flush();
+                });
+                echo ']';
+            }
+        }, 200, $response_headers);
     }
 
     /**

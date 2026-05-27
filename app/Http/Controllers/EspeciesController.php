@@ -13,9 +13,22 @@ class EspeciesController extends Controller
      */
     public function list()
     {
-        $especies = Especie::select(['nombre_cientifico', 'nombre_comun', 'url', 'id'])
-        ->groupBy(['especies.id', 'nombre_cientifico', 'nombre_comun', 'url'])
-        ->orderBy('nombre_cientifico')->get();
-        return response()->json($especies);
+        $especies = Especie::select([
+            'nombre_cientifico',
+            'nombre_comun',
+            'url',
+            'comestible',
+            'origen',
+            'region_pampeana',
+            'region_nea',
+            'region_noa',
+            'region_cuyana',
+            'region_patagonica',
+        ])->orderBy('nombre_cientifico')->get();
+        $filtered = $especies->map(fn($especie) => array_filter(
+            $especie->toArray(),
+            fn($value) => $value !== null && $value !== '' && $value !== 0
+        ));
+        return response()->json($filtered);
     }
 }
