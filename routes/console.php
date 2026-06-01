@@ -7,6 +7,8 @@ use App\Models\Especie;
 
 use App\Mail\Pendientes as PendientesCorreo;
 
+use App\Jobs\GenerarPMTiles;
+
 // Informar al administrador de aportes y especies pendientes de revisión y aprobación
 Schedule::call(function () {
     $aportes = Aporte::select(['id'])->where('cargado', 0)->get();
@@ -21,4 +23,9 @@ Schedule::call(function () {
             \Log::error($th);
         }
     }
+})->daily();
+
+// Generar los archivos arboles.geojson y arboles.pmtiles
+Schedule::call(function () {
+    GenerarPMTiles::dispatch();
 })->daily();

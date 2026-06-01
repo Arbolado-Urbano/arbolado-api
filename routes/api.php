@@ -15,7 +15,7 @@ Route::get('/', function () {
 
 Route::get('/fuentes/{slug}', [FuentesController::class, 'getTrees']);
 Route::get('/especies', [EspeciesController::class, 'list']);
-Route::get('/arboles{format?}', [ArbolesController::class, 'list'])->whereIn('format', ['.json', '.geojson']);
+Route::get('/arboles', [ArbolesController::class, 'generate']);
 Route::get('/arboles/{id}', [ArbolesController::class, 'get']);
 Route::post('/usuarios', [UsuariosController::class, 'get']);
 Route::post('/arboles', [ArbolesController::class, 'add']);

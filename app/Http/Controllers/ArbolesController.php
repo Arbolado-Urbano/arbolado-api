@@ -11,6 +11,8 @@ use App\Mail\NuevoArbol as NuevoArbolCorreo;
 
 use App\Rules\CaptchaRule;
 
+use App\Jobs\GenerarPMTiles;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -18,131 +20,15 @@ use Illuminate\Support\Facades\Mail;
 class ArbolesController extends Controller
 {
     /**
-     * Listar árboles
+     * Generar archivos arboles.pmtiles y arboles.geojson árboles
      *
      * @param  \Illuminate\Http\Request $request
-     * @param  string $format - El formato en que se desean los datos.
-     * @return \Illuminate\Http\Response - JSON o GeoJSON con una lista de los árobles.
+     * @return \Illuminate\Http\Response
      */
-    public function list(Request $request, string $format = '.json')
+    public function generate(Request $request)
     {
-        $arboles = Arbol::select(['id', 'lat', 'lng', 'especie_id'])
-        ->with(['species' => function($query) {
-            $query->select('id', 'url');
-        }])->whereNull('removido');
-
-        if (!empty($request->input('especie_id')) && ($request->input('especie_id'))) {
-            $arboles->where('especie_id', $request->input('especie_id'));
-        }
-
-        if (!empty($request->input('user_sabores')) && ($request->input('user_sabores'))) {
-            $arboles->whereHas('species', function($query) {
-                $query->where('comestible', 'Sí')->orWhere('medicinal', 'Sí');
-            });
-        }
-
-        if (!empty($request->input('user_origen')) && ($request->input('user_origen'))) {
-            $arboles->whereHas('species', function($query) use ($request) {
-                $query->where('origen', 'like', '%'.$request->input('user_origen').'%');
-            });
-        }
-
-        if (!empty($request->input('borigen_pampeana')) && ($request->input('borigen_pampeana'))) {
-            $arboles->whereHas('species', function($query) {
-                $query->where('region_pampeana', true);
-            });
-        }
-
-        if (!empty($request->input('borigen_nea')) && ($request->input('borigen_nea'))) {
-            $arboles->whereHas('species', function($query) {
-                $query->where('region_nea', true);
-            });
-        }
-
-        if (!empty($request->input('borigen_noa')) && ($request->input('borigen_noa'))) {
-            $arboles->whereHas('species', function($query) {
-                $query->where('region_noa', true);
-            });
-        }
-
-        if (!empty($request->input('borigen_cuyana')) && ($request->input('borigen_cuyana'))) {
-            $arboles->whereHas('species', function($query) {
-                $query->where('region_cuyana', true);
-            });
-        }
-
-        if (!empty($request->input('borigen_patagonica')) && ($request->input('borigen_patagonica'))) {
-            $arboles->whereHas('species', function($query) {
-                $query->where('region_patagonica', true);
-            });
-        }
-
-        if ((!empty($request->input('user_latlng'))) &&
-          ($request->input('user_latlng')) &&
-          (!empty($request->input('radio'))) &&
-          ($request->input('radio'))
-        ) {
-            $radio = $request->input('radio');
-            $user_latlng = explode(' ', $request->input('user_latlng'));
-            $user_lat = $user_latlng[0];
-            $user_lng = $user_latlng[1];
-            if (($user_lat) && ($user_lng) && is_numeric($user_lat) && is_numeric($user_lng) && (is_numeric($radio))) {
-                $arboles->whereRaw("(6371 * acos(cos(radians($user_lat)) * cos(radians(lat)) * cos(radians(lng) - radians($user_lng)) + sin (radians($user_lat)) * sin(radians(lat)))) < $radio / 1000");
-            }
-        }
-
-        $response_headers = [
-            'Content-Type'      => 'application/json',
-            'X-Accel-Buffering' => 'no', // Disables buffering in Nginx
-            'Cache-Control'     => 'no-cache',
-        ];
-
-        return response()->stream(function () use ($arboles, $format) {
-            $first = true;
-            if ($format === '.geojson') {
-                // GeoJSON stream
-                echo '{"type":"FeatureCollection","features":[';
-                $arboles->chunk(500, function ($chunk) use (&$first) {
-                    $buffer = '';
-                    foreach ($chunk as $arbol) {
-                        if (!$first) $buffer .= ',';
-                        $buffer .= sprintf(
-                            '{"type":"Feature","geometry":{"type":"Point","coordinates":[%s,%s]},"properties":{"id":%s,"species":"%s"}}',
-                            $arbol->lng,
-                            $arbol->lat,
-                            $arbol->id,
-                            $arbol->species->url,
-                        );
-                        $first = false;
-                    }
-                    echo $buffer;
-                    ob_flush();
-                    flush();
-                });
-                echo ']}';
-            } else {
-                // JSON stream
-                echo '[';
-                $arboles->chunk(500, function ($chunk) use (&$first) {
-                    $buffer = '';
-                    foreach ($chunk as $arbol) {
-                        if (!$first) $buffer .= ',';
-                        $buffer .= sprintf(
-                            '{"id":%s,"lat":%s,"lng":%s,"species":"%s"}',
-                            $arbol->id,
-                            $arbol->lat,
-                            $arbol->lng,
-                            $arbol->species->url,
-                        );
-                        $first = false;
-                    }
-                    echo $buffer;
-                    ob_flush();
-                    flush();
-                });
-                echo ']';
-            }
-        }, 200, $response_headers);
+        GenerarPMTiles::dispatch();
+        return response("Generación de archivo PMTiles programada.");
     }
 
     /**
