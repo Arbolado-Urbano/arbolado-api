@@ -19,7 +19,6 @@ class EspeciesController extends Controller
             'url',
             'comestible',
             'medicinal',
-            'origen',
         ])->orderBy('nombre_cientifico')->get();
         $filtered = $especies->map(fn($especie) => array_filter(
             $especie->toArray(),
