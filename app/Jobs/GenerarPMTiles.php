@@ -24,8 +24,8 @@ class GenerarPMTiles implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
     public function __construct()
     {
-        $this->geoJsonPath    = public_path("arboles.geojson");
-        $this->pmtilesPath   = public_path("arboles.pmtiles");
+        $this->geoJsonPath = public_path("arboles.geojson");
+        $this->pmtilesPath = public_path("arboles.pmtiles");
         $this->tippecanoePath = resource_path("bin/tippecanoe");
     }
 
@@ -54,14 +54,17 @@ class GenerarPMTiles implements ShouldQueue, ShouldBeUniqueUntilProcessing
         fwrite($fh, ']}');
         fclose($fh);
         rename($geoJsonTmpPath, $this->geoJsonPath);
-        $pmtilesTmpPath = "$this->pmtilesPath.tmp";
-        Process::run(sprintf(
+        $pmtilesTmpPath = "$this->pmtilesPath.tmp.pmtiles";
+        $result = Process::run(sprintf(
             '%s --output=%s --layer=%s --maximum-zoom=g --drop-densest-as-needed --force %s',
             $this->tippecanoePath,
             $pmtilesTmpPath,
             $this->layerName,
             $this->geoJsonPath,
         ));
+        if ($result->failed()) {
+            throw new \RuntimeException("tippecanoe failed: " . $result->errorOutput());
+        }
         rename($pmtilesTmpPath, $this->pmtilesPath);
     }
 }
