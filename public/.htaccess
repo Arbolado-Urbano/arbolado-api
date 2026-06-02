@@ -21,5 +21,20 @@
     # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^ index.php [L]
+    RewriteRule ^ /index.php [L]
 </IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.(pmtiles)$">
+        Header set Access-Control-Allow-Origin "https://staging.arboladourbano.com"
+        Header set Access-Control-Allow-Headers "Range"
+        Header set Access-Control-Expose-Headers "Content-Range, Content-Length, Accept-Ranges"
+    </FilesMatch>
+</IfModule>
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the “ea-php84” package as the default “PHP” programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php84 .php .php8 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit
