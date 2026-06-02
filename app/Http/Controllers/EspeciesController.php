@@ -18,12 +18,8 @@ class EspeciesController extends Controller
             'nombre_comun',
             'url',
             'comestible',
+            'medicinal',
             'origen',
-            'region_pampeana',
-            'region_nea',
-            'region_noa',
-            'region_cuyana',
-            'region_patagonica',
         ])->orderBy('nombre_cientifico')->get();
         $filtered = $especies->map(fn($especie) => array_filter(
             $especie->toArray(),
