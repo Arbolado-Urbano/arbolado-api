@@ -28,7 +28,7 @@ class ArbolesController extends Controller
     public function generate(Request $request)
     {
         GenerarPMTiles::dispatch();
-        return response("Generación de archivo PMTiles terminada.");
+        return response("Generación de archivo PMTiles iniciada.");
     }
 
     /**
