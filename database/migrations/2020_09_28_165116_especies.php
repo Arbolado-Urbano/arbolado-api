@@ -25,6 +25,7 @@ class Especies extends Migration
         $table->boolean('region_patagonica')->default(false);
         $table->string('procedencia_exotica')->nullable();
         $table->string('icono')->nullable();
+        $table->string('color')->nullable();
         $table->string('img_completo')->nullable();
         $table->string('img_hoja')->nullable();
         $table->string('img_flor')->nullable();
