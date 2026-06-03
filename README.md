@@ -80,7 +80,7 @@ Este repositorio contiene una API que se comunica con [Arbolado Client](https://
 | ----------------- | ------ | ------------------------------------------------------------------- |
 | `/fuentes/{slug}` | GET    | Mostrar árboles de una fuente                                       |
 | `/especies`       | GET    | Listar todas las especies                                           |
-| `/arboles`        | GET    | Generar el archivo `arboles.pmtiles`                                |
+| `/arboles`        | GET    | Generar el archivo `/public/arboles.pmtiles`                        |
 | `/arboles/{id}`   | GET    | Mostrar los detalles de un árbol                                    |
 | `/usuarios`       | POST   | Obtener la fuente a la que pertenece un usuario                     |
 | `/arboles`        | POST   | Agregar un nuevo árbol                                              |
