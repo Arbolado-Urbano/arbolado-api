@@ -12,6 +12,7 @@ Este repositorio contiene una API que se comunica con [Arbolado Client](https://
 
 - [PHP](https://www.php.net/)
 - [Composer](https://getcomposer.org/)
+- [Tippecanoe](https://github.com/felt/tippecanoe)
 - [Docker](https://docs.docker.com/get-docker/) (Opcional para desarrollo)
 
 ## Instalación para desarrollo
@@ -28,7 +29,7 @@ Este repositorio contiene una API que se comunica con [Arbolado Client](https://
 
 5.  Inicializar la base de datos `php artisan migrate`.
 
-6.  (Opcional) Restaurar la base de datos `docker exec -i arbolado-api-db-1 mysql -u root arbolado < [backup.sql]`.
+6.  (Opcional) Restaurar la base de datos `mysql -u root arbolado < [backup.sql]` (Si se optó por Docker: `docker exec -i arbolado-api-db-1 mysql -u root arbolado < [backup.sql]`).
     - El backup debe contener únicamente datos, no estructura.
     - Deshabilitar `foreign key checks` al exportar.
     - No incluir la tabla `migrations`.
@@ -37,7 +38,7 @@ Este repositorio contiene una API que se comunica con [Arbolado Client](https://
 
 ## Ejecución para desarrollo
 
-1. Levantar el servidor de la base de datos. Si se optó por usar Docker ejecutar `php artisan docker:up`.
+1. Levantar el servidor de la base de datos. Si se optó por usar Docker: `php artisan docker:up`.
 
 2. Ejecutar el comando `php artisan serve` para levantar una instancia del serivdor de desarrollo.
     - La primera vez, y cada vez que se desee actualizar el archivo `arboles.pmtiles`: `php artisan pmtiles` (esto puede demorar algunos minutos).
