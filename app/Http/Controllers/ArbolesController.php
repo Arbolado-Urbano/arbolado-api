@@ -28,11 +28,15 @@ class ArbolesController extends Controller
     public function generate(Request $request)
     {
         GenerarPMTiles::dispatch();
-        return response("Generación de archivo PMTiles iniciada.");
+        if (config('queue.default') === 'sync') {
+            return response('Generación de archivo PMTiles finalizada.');
+        } else {
+            return response("Generación de archivo PMTiles iniciada.");
+        }
     }
 
     /**
-     * Mostar detalles de un árbol
+     * Mostrar los detalles de un árbol
      *
      * @param  $id - ID del árbol
      * @return \Illuminate\Http\Response - JSON con los detalles del árbol.

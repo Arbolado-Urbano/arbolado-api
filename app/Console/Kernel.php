@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
         Commands\DockerUpCommand::class,
         Commands\DockerDownCommand::class,
         Commands\DockerPullCommand::class,
+        Commands\PMTilesCommand::class,
     ];
 
     /**

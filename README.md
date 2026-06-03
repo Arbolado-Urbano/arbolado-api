@@ -40,7 +40,7 @@ Este repositorio contiene una API que se comunica con [Arbolado Client](https://
 1. Levantar el servidor de la base de datos. Si se optó por usar Docker ejecutar `php artisan docker:up`.
 
 2. Ejecutar el comando `php artisan serve` para levantar una instancia del serivdor de desarrollo.
-    - La primera vez, y cada vez que se desee actualizar el archivo `arboles.pmtiles`, visitar la ruta `/arboles` (esto puede demorar algunos minutos).
+    - La primera vez, y cada vez que se desee actualizar el archivo `arboles.pmtiles`: `php artisan pmtiles` (esto puede demorar algunos minutos).
 
 ## Instalación para producción
 
@@ -67,8 +67,22 @@ Este repositorio contiene una API que se comunica con [Arbolado Client](https://
 
 ## Comandos personalizados disponibles
 
-| Comando                   | Descripción                   |
-| ------------------------- | ----------------------------- |
-| `php artisan docker:up`   | Levanta un container de MySQL |
-| `php artisan docker:pull` | Actualiza la imagen de MySQL  |
-| `php artisan docker:down` | Detiene el container de MySQL |
+| Comando                   | Descripción                               |
+| ------------------------- | ----------------------------------------- |
+| `php artisan docker:up`   | Levanta un container de MySQL             |
+| `php artisan docker:pull` | Actualiza la imagen de MySQL              |
+| `php artisan docker:down` | Detiene el container de MySQL             |
+| `php artisan pmtiles`     | Genera el archivo /public/arboles.pmtiles |
+
+## Rutas de la API
+
+| Ruta              | Método | Descripción                                                         |
+| ----------------- | ------ | ------------------------------------------------------------------- |
+| `/fuentes/{slug}` | GET    | Mostrar árboles de una fuente                                       |
+| `/especies`       | GET    | Listar todas las especies                                           |
+| `/arboles`        | GET    | Generar el archivo `arboles.pmtiles`                                |
+| `/arboles/{id}`   | GET    | Mostrar los detalles de un árbol                                    |
+| `/usuarios`       | POST   | Obtener la fuente a la que pertenece un usuario                     |
+| `/arboles`        | POST   | Agregar un nuevo árbol                                              |
+| `/aportes`        | POST   | Agregar un nuevo aporte                                             |
+| `/identificar`    | POST   | Identificar una especie a partir de fotos usando la API de PlantNet |

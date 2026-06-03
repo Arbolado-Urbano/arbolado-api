@@ -7,7 +7,7 @@ use App\Models\Arbol;
 class FuentesController extends Controller
 {
     /**
-     * Mostar árboles de una fuente
+     * Mostrar árboles de una fuente
      *
      * @param  $slud - Slug de la fuente
      * @return \Illuminate\Http\Response - JSON con una lista de todos los árobles provistos por la fuente.
