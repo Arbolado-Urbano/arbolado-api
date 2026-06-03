@@ -23,6 +23,8 @@ class EspeciesController extends Controller
             'nombre_comun',
             'id',
             'url',
+            'icono',
+            'color',
             'comestible',
             'medicinal',
         ])->orderBy('nombre_cientifico')->get();
