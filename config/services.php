@@ -19,6 +19,10 @@ return [
         'url' => env('CAPTCHA_URL'),
     ],
 
+    'plantnet' => [
+        'key' => env('PLANTNET_API_KEY'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

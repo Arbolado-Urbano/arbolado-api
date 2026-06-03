@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 class UsuariosController extends Controller
 {
     /**
-     * Retorna la fuente a la que pertenece un usuario
+     * Obtener la fuente a la que pertenece un usuario
      *
      * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response La fuente si el código fue encontrado, 404 si no existe, 422 si la validación de captcha falla
