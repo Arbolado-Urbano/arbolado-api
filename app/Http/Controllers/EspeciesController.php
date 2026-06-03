@@ -21,6 +21,7 @@ class EspeciesController extends Controller
         $especies = Especie::select([
             'nombre_cientifico',
             'nombre_comun',
+            'id',
             'url',
             'comestible',
             'medicinal',

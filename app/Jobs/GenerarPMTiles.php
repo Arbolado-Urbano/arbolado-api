@@ -7,9 +7,6 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Facades\Storage;
-
-use App\Models\Arbol;
 
 class GenerarPMTiles implements ShouldQueue, ShouldBeUniqueUntilProcessing
 {
@@ -18,49 +15,53 @@ class GenerarPMTiles implements ShouldQueue, ShouldBeUniqueUntilProcessing
     public int $tries = 1;
     public int $retryAfter = 7201;
     private string $layerName = "trees";
-    private string $geoJsonPath;
+    private string $CSVPath;
     private string $pmtilesPath;
     private string $tippecanoePath;
 
     public function __construct()
     {
-        $this->geoJsonPath = public_path("arboles.geojson");
+        $this->CSVPath = public_path("arboles.csv");
         $this->pmtilesPath = public_path("arboles.pmtiles");
         $this->tippecanoePath = resource_path("bin/tippecanoe");
     }
 
     public function handle(): void
     {
-        $geoJsonTmpPath = "$this->geoJsonPath.tmp";
-        $fh = fopen($geoJsonTmpPath, 'w');
-        fwrite($fh, '{"type":"FeatureCollection","features":[');
+        $this->generateCSV();
+        $this->generatePMTiles();
+    }
+
+    private function generateCSV() {
         $query = DB::table('arboles')
             ->join('especies', 'arboles.especie_id', '=', 'especies.id')
             ->whereNull('arboles.removido')
-            ->select('arboles.id', 'arboles.lat', 'arboles.lng', 'especies.url')
+            ->select('arboles.id', 'arboles.lat', 'arboles.lng', 'especies.id AS especieId')
             ->orderBy('arboles.id');
-        $first = true;
+        $CSVTmpPath = "$this->CSVPath.tmp";
+        $fh = fopen($CSVTmpPath, 'w');
+        fwrite($fh, "lat,lon,id,species\n");
         foreach ($query->lazy(1000) as $arbol) {
-            if (!$first) fwrite($fh, ',');
             fwrite($fh, sprintf(
-                '{"type":"Feature","geometry":{"type":"Point","coordinates":[%s,%s]},"properties":{"id":%s,"species":"%s"}}',
-                $arbol->lng,
+                "%s,%s,%s,%s\n",
                 $arbol->lat,
+                $arbol->lng,
                 $arbol->id,
-                $arbol->url,
+                $arbol->especieId,
             ));
-            $first = false;
         }
-        fwrite($fh, ']}');
         fclose($fh);
-        rename($geoJsonTmpPath, $this->geoJsonPath);
+        rename($CSVTmpPath, $this->CSVPath);
+    }
+
+    private function generatePMTiles() {
         $pmtilesTmpPath = "$this->pmtilesPath.tmp.pmtiles";
         $result = Process::run(sprintf(
-            '%s --output=%s --layer=%s --maximum-zoom=g --drop-densest-as-needed --force %s',
+            '%s --output=%s --layer=%s --maximum-zoom=g --drop-densest-as-needed --extend-zooms-if-still-dropping --force %s',
             $this->tippecanoePath,
             $pmtilesTmpPath,
             $this->layerName,
-            $this->geoJsonPath,
+            $this->CSVPath,
         ));
         if ($result->failed()) {
             throw new \RuntimeException("tippecanoe failed: " . $result->errorOutput());

@@ -30,6 +30,7 @@ class Arboles extends Migration
 
       Schema::table('arboles', function ($table) {
         $table->foreign('especie_id')->references('id')->on('especies')->onDelete('cascade');
+        $table->index('removido');
       });
     }
 

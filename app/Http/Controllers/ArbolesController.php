@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Mail;
 class ArbolesController extends Controller
 {
     /**
-     * Generar archivos arboles.pmtiles y arboles.geojson árboles
+     * Generar el archivo /public/arboles.pmtiles
      *
      * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response

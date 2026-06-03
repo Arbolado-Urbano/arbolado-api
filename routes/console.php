@@ -25,7 +25,7 @@ Schedule::call(function () {
     }
 })->daily();
 
-// Generar los archivos arboles.geojson y arboles.pmtiles
+// Generar el archivo arboles.pmtiles
 Schedule::call(function () {
     GenerarPMTiles::dispatch();
 })->daily();
