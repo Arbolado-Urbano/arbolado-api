@@ -7,6 +7,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Carbon;
 
 class GenerarPMTiles implements ShouldQueue, ShouldBeUniqueUntilProcessing
 {
@@ -15,11 +16,19 @@ class GenerarPMTiles implements ShouldQueue, ShouldBeUniqueUntilProcessing
     public int $tries = 1;
     public int $retryAfter = 7201;
     private string $layerName = "trees";
+    private string $CSVHeader = "lat,lon,id,species\n";
     private string $CSVPath;
     private string $pmtilesPath;
     private string $tippecanoePath;
 
-    public function __construct()
+    /**
+     * Create a new job instance.
+     *
+     * Handles generating the PMTiles file.
+     *
+     * @param bool $force Whether to fully regenerate the intermediate CSV from all DB records (true) or apply only the latest incremental changes (false).
+     */
+    public function __construct(public bool $force)
     {
         $this->CSVPath = public_path("arboles.csv");
         $this->pmtilesPath = public_path("arboles.pmtiles");
@@ -33,14 +42,32 @@ class GenerarPMTiles implements ShouldQueue, ShouldBeUniqueUntilProcessing
     }
 
     private function generateCSV() {
+        // Get all the trees in the DB
         $query = DB::table('arboles')
             ->join('especies', 'arboles.especie_id', '=', 'especies.id')
             ->whereNull('arboles.removido')
             ->select('arboles.id', 'arboles.lat', 'arboles.lng', 'especies.id AS especieId')
             ->orderBy('arboles.id');
-        $CSVTmpPath = "$this->CSVPath.tmp";
-        $fh = fopen($CSVTmpPath, 'w');
-        fwrite($fh, "lat,lon,id,species\n");
+        $mode = 'w';
+        // Unles the caller is forcing a file refresh check if a CSV file already exists
+        if (!$this->force && file_exists($this->CSVPath)) {
+            // If the file exists we only need to append any new trees since its date of modification
+            $mode = 'a';
+            $existingCSVDate = Carbon::createFromTimestamp(filemtime($this->CSVPath));
+            $query->where('arboles.updated_at', '>=', $existingCSVDate);
+            // We also need to remove any trees that might have been removed since the file was last modified
+            $removedSinceDate = DB::table('arboles')
+                ->whereNotNull('arboles.removido')
+                ->where('arboles.updated_at', '>=', $existingCSVDate)
+                ->select('arboles.id')->pluck('id')->flip()->all();
+            $this->removeExistingFromCSV($removedSinceDate);
+        }
+
+        $fh = fopen($this->CSVPath, $mode);
+        if ($mode === 'w') {
+            // If we're writing from scratch then write the header
+            fwrite($fh, $this->CSVHeader);
+        }
         foreach ($query->lazy(1000) as $arbol) {
             fwrite($fh, sprintf(
                 "%s,%s,%s,%s\n",
@@ -51,7 +78,42 @@ class GenerarPMTiles implements ShouldQueue, ShouldBeUniqueUntilProcessing
             ));
         }
         fclose($fh);
-        rename($CSVTmpPath, $this->CSVPath);
+    }
+
+    private function removeExistingFromCSV($toRemoveIds) {
+        if (count($toRemoveIds) === 0) return; // Nothing to do
+        $tmpPath = $this->CSVPath . '.tmp';
+        $src = fopen($this->CSVPath, 'r');
+        if (!$src) return; // No CSV file
+        try {
+            $firstLine = fgets($src);
+            if (!$firstLine) return; // CSV file is empty
+            $columns = explode(',', trim($firstLine));
+            $idIndex = array_find_key($columns, fn($value) => trim($value) === 'id');
+            if ($idIndex === null) return; // CSV file has no 'id' column
+            $dst = fopen($tmpPath, 'w');
+            try {
+                // Write the header in the new file
+                fwrite($dst, $this->CSVHeader);
+                // Go trough the original file and filter out the trees to be removed
+                while (($line = fgets($src)) !== false) {
+                    $trimmed = trim($line);
+                    if ($trimmed === '') continue;
+                    $columns = explode(',', $trimmed);
+                    $id = $columns[$idIndex] ?? null;
+                    // Only write to the new file if the tree is not to be removed
+                    if (!isset($toRemoveIds[$id])) {
+                        fwrite($dst, $line);
+                    }
+                }
+            } finally {
+                fclose($dst);
+            }
+            // Overwrite the original file
+            rename($tmpPath, $this->CSVPath);
+        } finally {
+            fclose($src);
+        }
     }
 
     private function generatePMTiles() {
