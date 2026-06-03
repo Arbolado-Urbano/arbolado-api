@@ -68,22 +68,8 @@ Este repositorio contiene una API que se comunica con [Arbolado Client](https://
 
 ## Comandos personalizados disponibles
 
-| Comando                   | Descripción                               |
-| ------------------------- | ----------------------------------------- |
-| `php artisan docker:up`   | Levanta un container de MySQL             |
-| `php artisan docker:pull` | Actualiza la imagen de MySQL              |
-| `php artisan docker:down` | Detiene el container de MySQL             |
-| `php artisan pmtiles`     | Genera el archivo /public/arboles.pmtiles |
+Ver el archivo `/docs/Commands.md`
 
 ## Rutas de la API
 
-| Ruta              | Método | Descripción                                                         |
-| ----------------- | ------ | ------------------------------------------------------------------- |
-| `/fuentes/{slug}` | GET    | Mostrar árboles de una fuente                                       |
-| `/especies`       | GET    | Listar todas las especies                                           |
-| `/arboles`        | GET    | Generar el archivo `/public/arboles.pmtiles`                        |
-| `/arboles/{id}`   | GET    | Mostrar los detalles de un árbol                                    |
-| `/usuarios`       | POST   | Obtener la fuente a la que pertenece un usuario                     |
-| `/arboles`        | POST   | Agregar un nuevo árbol                                              |
-| `/aportes`        | POST   | Agregar un nuevo aporte                                             |
-| `/identificar`    | POST   | Identificar una especie a partir de fotos usando la API de PlantNet |
+Ver el archivo `/docs/Endpoints.md`

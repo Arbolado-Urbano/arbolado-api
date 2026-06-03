@@ -27,11 +27,19 @@ class ArbolesController extends Controller
      */
     public function generate(Request $request)
     {
-        GenerarPMTiles::dispatch();
+        $force = $request->has('forzar');
+        GenerarPMTiles::dispatch($force);
         if (config('queue.default') === 'sync') {
-            return response('Generación de archivo PMTiles finalizada.');
+            return response(
+                $force
+                    ? 'Regeneración del archivo PMTiles finalizada.'
+                    : 'Actualización del archivo PMTiles finalizada.'
+            );
         } else {
-            return response("Generación de archivo PMTiles iniciada.");
+            return response(
+                $force
+                    ? 'Regeneración del archivo PMTiles iniciada.'
+                    : 'Actualización del archivo PMTiles iniciada.');
         }
     }
 
