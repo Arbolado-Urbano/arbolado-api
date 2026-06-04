@@ -27,12 +27,13 @@ class Registros extends Migration
         $table->unsignedInteger('arbol_id');
         $table->unsignedInteger('usuario_id')->nullable();
         $table->timestamps();
-        });
-        
-        Schema::table('registros', function ($table) {
+      });
+
+      Schema::table('registros', function ($table) {
         $table->foreign('usuario_id')->references('id')->on('usuarios')->onDelete('cascade');
         $table->foreign('arbol_id')->references('id')->on('arboles')->onDelete('cascade');
         $table->foreign('fuente_id')->references('id')->on('fuentes')->onDelete('cascade');
+        $table->index(['arbol_id', 'fuente_id']);
       });
     }
 

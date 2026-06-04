@@ -2,27 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Arbol;
+use App\Models\Fuente;
 
 class FuentesController extends Controller
 {
     /**
-     * Mostrar árboles de una fuente
+     * Obtener el ID de una fuente.
      *
-     * @param  $slud - Slug de la fuente
-     * @return \Illuminate\Http\Response - JSON con una lista de todos los árobles provistos por la fuente.
+     * @param  $slug - Slug de la fuente.
+     * @return \Illuminate\Http\Response - JSON con el ID la fuente.
      */
     public function getTrees($slug)
     {
-        $arboles = Arbol::select(['id', 'lat', 'lng', 'especie_id'])
-        ->with([
-            'species',
-            'records',
-            'records.source',
-        ])->whereHas('records.source', function ($q) use ($slug) {
-            $q->where('slug', $slug);
-        });
-
-        return response()->json($arboles->get());
+        $source = Fuente::select(['id'])->where('slug', $slug)->first();
+        if (!$source) abort(404);
+        return response()->json($source);
     }
 }
