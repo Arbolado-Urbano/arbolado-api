@@ -16,7 +16,7 @@ class GenerarPMTiles implements ShouldQueue, ShouldBeUniqueUntilProcessing
     public int $tries = 1;
     public int $retryAfter = 7201;
     private string $layerName = "trees";
-    private string $CSVHeader = "lat,lon,id,species\n";
+    private string $CSVHeader = "lat,lon,id,species,sources\n";
     private string $CSVPath;
     private string $pmtilesPath;
     private string $tippecanoePath;
@@ -37,20 +37,30 @@ class GenerarPMTiles implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
     public function handle(): void
     {
-        $this->generateCSV();
-        $this->generatePMTiles();
+        $updatePMTiles = $this->generateCSV();
+        if ($updatePMTiles) $this->generatePMTiles();
     }
 
     private function generateCSV() {
         // Get all the trees in the DB
         $query = DB::table('arboles')
             ->join('especies', 'arboles.especie_id', '=', 'especies.id')
+            ->join('registros', 'registros.arbol_id', '=', 'arboles.id')
             ->whereNull('arboles.removido')
-            ->select('arboles.id', 'arboles.lat', 'arboles.lng', 'especies.id AS especieId')
+            ->select(
+                'arboles.id',
+                'arboles.lat',
+                'arboles.lng',
+                'especies.id AS especieId',
+                DB::raw('GROUP_CONCAT(DISTINCT registros.fuente_id ORDER BY registros.fuente_id) as fuenteIds')
+            )
+            ->groupBy('arboles.id', 'arboles.lat', 'arboles.lng', 'especies.id')
             ->orderBy('arboles.id');
         $mode = 'w';
+        $updatePMTiles = $this->force;
         // Unles the caller is forcing a file refresh check if a CSV file already exists
         if (!$this->force && file_exists($this->CSVPath)) {
+            $updatePMTiles = false;
             // If the file exists we only need to append any new trees since its date of modification
             $mode = 'a';
             $existingCSVDate = Carbon::createFromTimestamp(filemtime($this->CSVPath));
@@ -60,7 +70,10 @@ class GenerarPMTiles implements ShouldQueue, ShouldBeUniqueUntilProcessing
                 ->whereNotNull('arboles.removido')
                 ->where('arboles.updated_at', '>=', $existingCSVDate)
                 ->select('arboles.id')->pluck('id')->flip()->all();
-            $this->removeExistingFromCSV($removedSinceDate);
+            if (count($removedSinceDate) > 0) {
+                $this->removeExistingFromCSV($removedSinceDate);
+                $updatePMTiles = true;
+            }
         }
 
         $fh = fopen($this->CSVPath, $mode);
@@ -69,19 +82,21 @@ class GenerarPMTiles implements ShouldQueue, ShouldBeUniqueUntilProcessing
             fwrite($fh, $this->CSVHeader);
         }
         foreach ($query->lazy(1000) as $arbol) {
+            $updatePMTiles = true;
             fwrite($fh, sprintf(
-                "%s,%s,%s,%s\n",
+                "%s,%s,%s,%s,\",%s,\"\n",
                 $arbol->lat,
                 $arbol->lng,
                 $arbol->id,
                 $arbol->especieId,
+                $arbol->fuenteIds,
             ));
         }
         fclose($fh);
+        return $updatePMTiles;
     }
 
     private function removeExistingFromCSV($toRemoveIds) {
-        if (count($toRemoveIds) === 0) return; // Nothing to do
         $tmpPath = $this->CSVPath . '.tmp';
         $src = fopen($this->CSVPath, 'r');
         if (!$src) return; // No CSV file

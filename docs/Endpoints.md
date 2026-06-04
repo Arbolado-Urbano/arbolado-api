@@ -2,7 +2,7 @@
 
 | Ruta            | Método | Descripción                                                         |
 | --------------- | ------ | ------------------------------------------------------------------- |
-| /fuentes/{slug} | GET    | Mostrar árboles de una fuente                                       |
+| /fuentes/{slug} | GET    | Obtener el ID de una fuente                                         |
 | /especies       | GET    | Listar todas las especies                                           |
 | /arboles (GET)  | GET    | Generar el archivo `/public/arboles.pmtiles`                        |
 | /arboles/{id}   | GET    | Mostrar los detalles de un árbol                                    |
@@ -18,7 +18,7 @@
 
 ## `GET /fuentes/{slug}`
 
-Devuelve los árboles pertenecientes a una fuente específica.
+Retorna el ID de una fuente.
 
 ### Parámetros de ruta
 
@@ -29,55 +29,15 @@ Devuelve los árboles pertenecientes a una fuente específica.
 ### Respuesta exitosa — `200 OK`
 
 ```ts
-type Source = {
-    id: number;
-    nombre: string;
-    descripcion: string;
-    facebook?: string;
-    instagram?: string;
-    twitter?: string;
-    url?: string;
-};
-
-type Record = {
-    id: number;
-    altura?: string;
-    diametro_a_p?: string;
-    inclinacion?: string;
-    fecha_creacion: string;
-    estado_fitosanitario?: string;
-    etapa_desarrollo?: string;
-    source: Source;
-};
-
-type Species = {
-    id: number;
-    url?: string;
-    icono?: string;
-    color?: string;
-    nombre_cientifico: string;
-    nombre_comun?: string;
-    comestible?: string;
-    medicinal?: string;
-};
-
-type Tree = {
-    id: number;
-    lat: number;
-    lng: number;
-    especie_id: number;
-    species: Species;
-    records: Record[];
-};
-
-type Response = Tree[];
+type Response = { id: number };
 ```
 
 ### Códigos de estado
 
-| Código | Descripción                         |
-| ------ | ----------------------------------- |
-| `200`  | Éxito. Devuelve el array de árboles |
+| Código | Descripción                                 |
+| ------ | ------------------------------------------- |
+| `200`  | Éxito. Devuelve el ID de la fuente          |
+| `404`  | No existe una fuente con el `slug` indicado |
 
 ---
 
@@ -149,47 +109,47 @@ Devuelve los detalles completos de un árbol específico, incluyendo su especie,
 
 ```ts
 type Source = {
-    id: number;
-    nombre: string;
-    descripcion: string;
-    facebook?: string;
-    instagram?: string;
-    twitter?: string;
-    url?: string;
-};
+    id: number
+    nombre: string
+    descripcion: string
+    facebook?: string
+    instagram?: string
+    twitter?: string
+    url?: string
+}
 
 type Record = {
-    id: number;
-    altura?: string;
-    diametro_a_p?: string;
-    inclinacion?: string;
-    fecha_creacion: string;
-    estado_fitosanitario?: string;
-    etapa_desarrollo?: string;
-    source: Source;
-};
+    id: number
+    altura?: string
+    diametro_a_p?: string
+    inclinacion?: string
+    fecha_creacion: string
+    estado_fitosanitario?: string
+    etapa_desarrollo?: string
+    source: Source
+}
 
 type Response = {
-    id: number;
-    calle?: string;
-    calle_altura?: string;
-    espacio_verde?: string;
-    streetview?: string;
-    lat: number;
-    lng: number;
+    id: number
+    calle?: string
+    calle_altura?: string
+    espacio_verde?: string
+    streetview?: string
+    lat: number
+    lng: number
     species: {
-        id: number;
-        nombre_cientifico: string;
-        nombre_comun: string;
-        origen: string;
-        procedencia_exotica?: string;
-        icono: string;
-        url?: string;
-        family: { id: number; familia: string };
-        type: { id: number; tipo: string };
-    };
-    records: Record[];
-};
+        id: number
+        nombre_cientifico: string
+        nombre_comun: string
+        origen: string
+        procedencia_exotica?: string
+        icono: string
+        url?: string
+        family: { id: number familia: string }
+        type: { id: number tipo: string }
+    }
+    records: Record[]
+}
 ```
 
 ### Códigos de estado
