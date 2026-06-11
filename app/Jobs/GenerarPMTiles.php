@@ -134,7 +134,7 @@ class GenerarPMTiles implements ShouldQueue, ShouldBeUniqueUntilProcessing
     private function generatePMTiles() {
         $pmtilesTmpPath = "$this->pmtilesPath.tmp.pmtiles";
         $result = Process::run(sprintf(
-            '%s --output=%s --layer=%s --maximum-zoom=g --drop-densest-as-needed --extend-zooms-if-still-dropping --force %s',
+            '%s --output=%s --layer=%s -zg --no-tile-size-limit --no-feature-limit -r1 --force %s',
             $this->tippecanoePath,
             $pmtilesTmpPath,
             $this->layerName,
