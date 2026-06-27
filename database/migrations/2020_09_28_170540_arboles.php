@@ -16,8 +16,8 @@ class Arboles extends Migration
       Schema::create('arboles', function (Blueprint $table) {
         $table->increments('id');
         $table->string('id_censo')->nullable();
-        $table->float('lat', 12, 10)->nullable();
-        $table->float('lng', 12, 10)->nullable();
+        $table->decimal('lat', 12, 10)->nullable();
+        $table->decimal('lng', 12, 10)->nullable();
         $table->string('localidad')->default('CABA');
         $table->string('calle')->nullable();
         $table->integer('calle_altura')->nullable();
