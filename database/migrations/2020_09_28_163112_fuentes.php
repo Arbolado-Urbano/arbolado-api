@@ -18,7 +18,8 @@ class Fuentes extends Migration
       $table->string('nombre');
       $table->string('slug')->nullable()->unique();
       $table->text('descripcion')->nullable();
-      $table->string('mapa_centro', length: 50);
+      $table->decimal('lat', 12, 10)->nullable();
+      $table->decimal('lng', 12, 10)->nullable();
       $table->string('email')->nullable();
       $table->string('facebook')->nullable();
       $table->string('twitter')->nullable();
