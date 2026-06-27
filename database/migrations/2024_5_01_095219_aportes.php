@@ -15,8 +15,8 @@ class Aportes extends Migration
   {
     Schema::create('aportes', function (Blueprint $table) {
       $table->increments('id');
-      $table->float('lat', 12, 10);
-      $table->float('lng', 12, 10);
+      $table->decimal('lat', 12, 10);
+      $table->decimal('lng', 12, 10);
       $table->string('especie')->nullable();
       $table->decimal('altura', 6, 2)->nullable();
       $table->decimal('diametro_a_p', 6, 2)->nullable();
