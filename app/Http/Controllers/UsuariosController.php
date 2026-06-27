@@ -26,6 +26,10 @@ class UsuariosController extends Controller
         if (!$user) {
             abort(404);
         }
-        return response()->json(['slug' => $user->source->slug]);
+        return response()->json([
+            'slug' => $user->source->slug,
+            'lat' => $user->source->lat,
+            'lng' => $user->source->lng,
+        ]);
     }
 }
