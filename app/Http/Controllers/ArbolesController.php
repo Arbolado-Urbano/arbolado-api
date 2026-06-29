@@ -176,7 +176,7 @@ class ArbolesController extends Controller
                 }
             });
             // Regenerar el archivo pmtiles
-            GenerarPMTiles::dispatch();
+            GenerarPMTiles::dispatch(false);
             return response()->json();
         } catch (\Throwable $th) {
             \Log::error('Nuevo árbol - error al crear nuevo árbol:');
