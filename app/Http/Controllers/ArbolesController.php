@@ -6,16 +6,15 @@ use App\Models\Especie;
 use App\Models\Arbol;
 use App\Models\Registro;
 use App\Models\Usuario;
-
-use App\Mail\NuevoArbol as NuevoArbolCorreo;
+use App\Models\Fuente;
 
 use App\Rules\CaptchaRule;
 
 use App\Jobs\GenerarPMTiles;
+use App\Jobs\EnviarNuevoArbolEmail;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 
 class ArbolesController extends Controller
 {
@@ -98,7 +97,7 @@ class ArbolesController extends Controller
             'notes'          => 'nullable|string',
         ]);
 
-        $user = Usuario::select(['id', 'nombre', 'codigo', 'fuente_id'])->where('usuarios.codigo', $data['code'])->first();
+        $user = Usuario::where('usuarios.codigo', $data['code'])->with('source')->first();
         if (!$user) abort(401);
 
         try {
@@ -121,7 +120,7 @@ class ArbolesController extends Controller
                 if ($data["block"]) {
                     $idCensoBase = strtoupper("$data[block]");
                     do {
-                        $idCenso = "$idCensoBase$index";
+                        $idCenso = "$idCensoBase-$index";
                         $arbol = Arbol::select(['arboles.id'])->where('arboles.id_censo', $idCenso)->first();
                         $index++;
                     } while ($arbol);
@@ -145,39 +144,32 @@ class ArbolesController extends Controller
                     'notas' => $data['notes'] ?? null,
                     'arbol_id' => $arbol->id,
                     'usuario_id' => $user->id,
-                    'fuente_id' => $user->fuente_id,
+                    'fuente_id' => $user->source->id,
                 ];
                 Registro::create($recordData);
                 // Email admin
-                $especie = Especie::select(['nombre_cientifico', 'nombre_comun'])->where('id', $especieId)->first();
-                $emailData = array_merge($treeData, $recordData, [
-                    'block' => $data['block'] ?? null,
-                    'street' => $data['street'],
-                    'streetNumber' => $data['streetNumber'] ?? null,
-                    'especie_nombre_cientifico' => $especie->nombre_cientifico,
-                    'especie_nombre_comun' => $especie->nombre_comun,
-                    'censista_nombre' => $user->nombre,
-                    'censista_codigo' => $user->codigo,
-                ]);
-                $email = new NuevoArbolCorreo($emailData);
-                $email->subject('Nuevo árbol | Arbolado Urbano');
-                if ($request->hasFile('images')) {
-                    $images = $request->file('images');
-                    try {
-                        foreach ($images as $index => $image) {
-                            $imageName = $idCenso.'-'.($index + 1);
-                            $email->attach($image->getRealPath(), ['as' => $imageName, 'mime' => $image->getMimeType()]);
+                if ($user->source->email) {
+                    $especie = Especie::select(['nombre_cientifico', 'nombre_comun'])->where('id', $especieId)->first();
+                    $emailData = array_merge($treeData, $recordData, [
+                        'block' => $data['block'] ?? null,
+                        'street' => $data['street'],
+                        'streetNumber' => $data['streetNumber'] ?? null,
+                        'especie_nombre_cientifico' => $especie->nombre_cientifico,
+                        'especie_nombre_comun' => $especie->nombre_comun,
+                        'censista_nombre' => $user->nombre,
+                        'censista_codigo' => $user->codigo,
+                    ]);
+                    $images = [];
+                    if ($request->hasFile('images')) {
+                        foreach ($request->file('images') as $index => $image) {
+                            $path = $image->store('temp/email-images', 'local');
+                            $images[] = [
+                                'path' => $path,
+                                'name' => ($idCenso ?? $arbol->id) . '-' . ($index + 1),
+                            ];
                         }
-                    } catch (\Throwable $th) {
-                        \Log::error('Nuevo árbol - error adjuntando fotos para email:');
-                        \Log::error($th);
                     }
-                }
-                try {
-                    Mail::to(config('mail.admin_email'))->send($email);
-                } catch (\Throwable $th) {
-                    \Log::error('Nuevo árbol - error al enviar email:');
-                    \Log::error($th);
+                    EnviarNuevoArbolEmail::dispatch($user->source->email, $emailData, $images);
                 }
             });
             // Regenerar el archivo pmtiles
