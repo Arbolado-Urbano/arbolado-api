@@ -86,8 +86,9 @@ class ArbolesController extends Controller
             'species'        => 'nullable|string|required_without:speciesUrl',
             'speciesUrl'     => 'nullable|string|required_without:species',
             'captcha'        => ['required', new CaptchaRule()],
-            'block'          => 'required|string',
-            'orientation'    => 'required|string',
+            'block'          => 'nullable|string',
+            'street'         => 'required|string',
+            'streetNumber'   => 'nullable|string',
             'height'         => 'nullable|string',
             'diameterTrunk'  => 'nullable|string',
             'diameterCanopy' => 'nullable|string',
@@ -116,12 +117,15 @@ class ArbolesController extends Controller
                     ])->id;
                 }
                 $index = 1;
-                $idCensoBase = strtoupper("$data[block]$data[orientation]");
-                do {
-                    $idCenso = "$idCensoBase$index";
-                    $arbol = Arbol::select(['arboles.id'])->where('arboles.id_censo', $idCenso)->first();
-                    $index++;
-                } while ($arbol);
+                $idCenso = null;
+                if ($data["block"]) {
+                    $idCensoBase = strtoupper("$data[block]");
+                    do {
+                        $idCenso = "$idCensoBase$index";
+                        $arbol = Arbol::select(['arboles.id'])->where('arboles.id_censo', $idCenso)->first();
+                        $index++;
+                    } while ($arbol);
+                }
                 $latLng = explode(',', $data['coordinates']);
                 $treeData = [
                     'lat' => $latLng[0],
@@ -147,8 +151,9 @@ class ArbolesController extends Controller
                 // Email admin
                 $especie = Especie::select(['nombre_cientifico', 'nombre_comun'])->where('id', $especieId)->first();
                 $emailData = array_merge($treeData, $recordData, [
-                    'block' => $data['block'],
-                    'orientation' => $data['orientation'],
+                    'block' => $data['block'] ?? null,
+                    'street' => $data['street'],
+                    'streetNumber' => $data['streetNumber'] ?? null,
                     'especie_nombre_cientifico' => $especie->nombre_cientifico,
                     'especie_nombre_comun' => $especie->nombre_comun,
                     'censista_nombre' => $user->nombre,

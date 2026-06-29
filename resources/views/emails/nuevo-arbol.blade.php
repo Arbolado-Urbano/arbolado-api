@@ -8,17 +8,29 @@
 
 <ul>
   <li>
-    <b>ID:</b> {{ $data['id_censo'] }}
+    <b>ID:</b>
+    @if ($data['id_censo'] != null)
+      {{ $data['id_censo'] }}
+    @else
+      {{ $data['arbol_id'] }}
+    @endif
   </li>
   <li>
     <b>Ubicación:</b> <a href="https://maps.google.com/?q={{$data['lat']}},{{$data['lng']}}">{{$data['lat']}},{{$data['lng']}}</a>
   </li>
+  @isset($data['block'])
+    <li>
+      <b>Manzana:</b> {{strtoupper($data['block'])}}
+    </li>
+  @endisset
   <li>
-    <b>Manzana:</b> {{strtoupper($data['block'])}}
+    <b>Calle:</b> {{$data['street']}}
   </li>
-  <li>
-    <b>Orientación:</b> {{strtoupper($data['orientation'])}}
-  </li>
+  @isset($data['streetNumber'])
+    <li>
+      <b>Altura:</b> {{$data['streetNumber']}}
+    </li>
+  @endisset
   <li>
     <b>Especie:</b> {{ !empty($data['especie_nombre_comun']) ? $data['especie_nombre_comun'] . ' (' . $data['especie_nombre_cientifico'] . ')' : $data['especie_nombre_cientifico'] }}
   </li>
