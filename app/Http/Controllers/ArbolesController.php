@@ -113,7 +113,7 @@ class ArbolesController extends Controller
                     $especieId = Especie::firstOrCreate([
                         // Por el chequeo inicial si "speciesUrl" no está definido entonces "species" si está definido.
                         'nombre_cientifico' => $data['species'],
-                    ])->url;
+                    ])->id;
                 }
                 $index = 1;
                 $idCensoBase = strtoupper("$data[block]$data[orientation]");
