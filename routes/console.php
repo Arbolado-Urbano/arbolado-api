@@ -27,5 +27,5 @@ Schedule::call(function () {
 
 // Generar el archivo arboles.pmtiles
 Schedule::call(function () {
-    GenerarPMTiles::dispatch();
+    GenerarPMTiles::dispatch(false);
 })->daily();
