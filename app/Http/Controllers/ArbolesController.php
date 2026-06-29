@@ -86,7 +86,7 @@ class ArbolesController extends Controller
             'speciesUrl'     => 'nullable|string|required_without:species',
             'captcha'        => ['required', new CaptchaRule()],
             'block'          => 'nullable|string',
-            'street'         => 'required|string',
+            'street'         => 'nullable|string',
             'streetNumber'   => 'nullable|string',
             'height'         => 'nullable|string',
             'diameterTrunk'  => 'nullable|string',
