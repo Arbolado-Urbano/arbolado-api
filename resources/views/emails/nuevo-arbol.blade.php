@@ -8,6 +8,9 @@
 
 <ul>
   <li>
+    <b>Enlace:</b> <a href="{{config('app.client_url')}}/arbol/{{$data['arbol_id']}}">Ver en Arbolado Urbano</a>
+  </li>
+  <li>
     <b>ID:</b>
     @if ($data['id_censo'] != null)
       {{ $data['id_censo'] }}
