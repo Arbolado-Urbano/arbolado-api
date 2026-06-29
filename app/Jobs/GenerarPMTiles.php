@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 class GenerarPMTiles implements ShouldQueue, ShouldBeUniqueUntilProcessing
 {
     use Queueable;
-    public int $timeout = 900; // 15 minutes
+    public int $timeout = 1800; // 30 minutes
     public int $tries = 1;
     public int $retryAfter = 7201;
     private string $layerName = "trees";
