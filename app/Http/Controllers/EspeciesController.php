@@ -16,9 +16,9 @@ class EspeciesController extends Controller
      *
      * @return \Illuminate\Http\Response - JSON con una lista de todas las especies.
      */
-    public function list()
+    public function list(Request $request)
     {
-        $especies = Especie::select([
+        $query = Especie::select([
             'nombre_cientifico',
             'nombre_comun',
             'id',
@@ -27,12 +27,14 @@ class EspeciesController extends Controller
             'color',
             'comestible',
             'medicinal',
-        ])->orderBy('nombre_cientifico')->get();
-        $filtered = $especies->map(fn($especie) => array_filter(
-            $especie->toArray(),
-            fn($value) => $value !== null && $value !== '' && $value !== 0
-        ));
-        return response()->json($filtered);
+        ])->where('nombre_cientifico', '<>', '');
+
+        if ($request->has('comestibles')) {
+            $query->where('comestible', '<>', '');
+        }
+
+        $especies = $query->orderBy('nombre_cientifico')->get();
+        return response()->json($especies);
     }
 
     /**

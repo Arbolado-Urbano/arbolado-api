@@ -46,7 +46,11 @@ type Response = { id: number };
 Devuelve el listado completo de especies disponibles en el sistema.
 Los campos nulos, vacíos o con valor `0` son omitidos de cada objeto.
 
-No recibe parámetros.
+### Parámetros de consulta
+
+| Parámetro     | Requerido | Descripción                                                    |
+| ------------- | --------- | -------------------------------------------------------------- |
+| `comestibles` | No        | Si se incluye, se retornan únicamente las especies comestibles |
 
 ### Respuesta exitosa — `200 OK`
 
