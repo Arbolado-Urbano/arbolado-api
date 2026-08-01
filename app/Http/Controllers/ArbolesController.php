@@ -18,6 +18,55 @@ use Illuminate\Support\Facades\DB;
 class ArbolesController extends Controller
 {
     /**
+     * listar árboles
+     *
+     * @return \Illuminate\Http\Response - JSON con el listado de árboles.
+     */
+    public function list(Request $request)
+    {
+        $headers = [
+            'Content-Type'      => 'application/json',
+            'X-Accel-Buffering' => 'no', // Disables buffering in Nginx
+            'Cache-Control'     => 'no-cache',
+        ];
+
+        return response()->stream(function () use ($request) {
+            echo '[';
+            $first = true;
+
+            $query = DB::table('arboles as a')
+                ->join('especies as e', 'a.especie_id', '=', 'e.id')
+                ->select(['a.id', 'a.lat', 'a.lng', 'e.url as species_url'])
+                ->orderBy('a.id');
+
+            if ($request->has('comestibles')) {
+                $query->where('e.comestible', '<>', '');
+            }
+
+            $query->chunkById(500, function ($chunk) use (&$first) {
+                $rows = [];
+                foreach ($chunk as $row) {
+                    $rows[] = [
+                        'id'      => $row->id,
+                        'lat'     => $row->lat,
+                        'lng'     => $row->lng,
+                        'species' => $row->species_url,
+                    ];
+                }
+                echo ($first ? '' : ',') . substr(json_encode($rows), 1, -1);
+                $first = false;
+
+                if (ob_get_level() > 0) {
+                    ob_flush();
+                }
+                flush();
+            }, 'a.id', 'id');
+
+            echo ']';
+        }, 200, $headers);
+    }
+
+    /**
      * Mostrar los detalles de un árbol
      *
      * @param  $id - ID del árbol

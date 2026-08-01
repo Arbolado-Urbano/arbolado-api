@@ -12,7 +12,7 @@ use GuzzleHttp\Client;
 class EspeciesController extends Controller
 {
     /**
-     * Listar todas las especies
+     * Listar especies
      *
      * @return \Illuminate\Http\Response - JSON con una lista de todas las especies.
      */

@@ -3,8 +3,9 @@
 | Ruta            | Método | Descripción                                                         |
 | --------------- | ------ | ------------------------------------------------------------------- |
 | /fuentes/{slug} | GET    | Obtener el ID de una fuente                                         |
-| /especies       | GET    | Listar todas las especies                                           |
+| /especies       | GET    | Listar especies                                                     |
 | /mapa (GET)     | GET    | Generar el archivo `/public/arboles.pmtiles`                        |
+| /arboles        | GET    | Listar árboles                                                      |
 | /arboles/{id}   | GET    | Mostrar los detalles de un árbol                                    |
 | /usuarios       | POST   | Obtener la fuente a la que pertenece un usuario                     |
 | /arboles (POST) | POST   | Agregar un nuevo árbol                                              |
@@ -43,7 +44,7 @@ type Response = { id: number };
 
 ## `GET /especies`
 
-Devuelve el listado completo de especies disponibles en el sistema.
+Devuelve un listado de especies disponibles en el sistema.
 Los campos nulos, vacíos o con valor `0` son omitidos de cada objeto.
 
 ### Parámetros de consulta
@@ -96,6 +97,37 @@ Genera el archivo `/public/arboles.pmtiles` con los datos de todos los árboles 
 | Código | Descripción                                  |
 | ------ | -------------------------------------------- |
 | `200`  | Éxito. El trabajo de generación fue iniciado |
+
+---
+
+## `GET /arboles`
+
+Devuelve un listado de árboles disponibles en el sistema.
+
+### Parámetros de consulta
+
+| Parámetro     | Requerido | Descripción                                                   |
+| ------------- | --------- | ------------------------------------------------------------- |
+| `comestibles` | No        | Si se incluye, se retornan únicamente los árboles comestibles |
+
+### Respuesta exitosa — `200 OK`
+
+```ts
+type Tree = {
+    id: number;
+    lat: string;
+    lng: string;
+    species: string;
+};
+
+type Response = Tree[];
+```
+
+### Códigos de estado
+
+| Código | Descripción                         |
+| ------ | ----------------------------------- |
+| `200`  | Éxito. Devuelve el array de árboles |
 
 ---
 

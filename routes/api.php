@@ -10,14 +10,15 @@ use App\Http\Controllers\MapaController;
 use App\Http\Controllers\UsuariosController;
 
 Route::get('/', function () {
-    return "Arbolado Urbano API V1.5.1";
+    return "Arbolado Urbano API V1.5.2";
 });
 
 Route::get('/fuentes/{slug}', [FuentesController::class, 'getTrees']);
 Route::get('/especies', [EspeciesController::class, 'list']);
 Route::get('/mapa', [MapaController::class, 'generate']);
+Route::get('/arboles', [ArbolesController::class, 'list']);
 Route::get('/arboles/{id}', [ArbolesController::class, 'get']);
-Route::post('/usuarios', [UsuariosController::class, 'get']);
 Route::post('/arboles', [ArbolesController::class, 'add']);
 Route::post('/aportes', [AportesController::class, 'add']);
+Route::post('/usuarios', [UsuariosController::class, 'get']);
 Route::post('/identificar', [EspeciesController::class, 'identify']);
