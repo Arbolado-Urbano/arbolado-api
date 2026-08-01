@@ -4,7 +4,7 @@
 | --------------- | ------ | ------------------------------------------------------------------- |
 | /fuentes/{slug} | GET    | Obtener el ID de una fuente                                         |
 | /especies       | GET    | Listar todas las especies                                           |
-| /arboles (GET)  | GET    | Generar el archivo `/public/arboles.pmtiles`                        |
+| /mapa (GET)     | GET    | Generar el archivo `/public/arboles.pmtiles`                        |
 | /arboles/{id}   | GET    | Mostrar los detalles de un árbol                                    |
 | /usuarios       | POST   | Obtener la fuente a la que pertenece un usuario                     |
 | /arboles (POST) | POST   | Agregar un nuevo árbol                                              |
@@ -77,7 +77,7 @@ type Response = Species[];
 
 ---
 
-## `GET /arboles`
+## `GET /mapa`
 
 Genera el archivo `/public/arboles.pmtiles` con los datos de todos los árboles no removidos.
 
