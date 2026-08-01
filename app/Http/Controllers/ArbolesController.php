@@ -6,7 +6,6 @@ use App\Models\Especie;
 use App\Models\Arbol;
 use App\Models\Registro;
 use App\Models\Usuario;
-use App\Models\Fuente;
 
 use App\Rules\CaptchaRule;
 
@@ -19,36 +18,12 @@ use Illuminate\Support\Facades\DB;
 class ArbolesController extends Controller
 {
     /**
-     * Generar el archivo /public/arboles.pmtiles
-     *
-     * @param  \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
-     */
-    public function generate(Request $request)
-    {
-        $force = $request->has('forzar');
-        GenerarPMTiles::dispatch($force);
-        if (config('queue.default') === 'sync') {
-            return response(
-                $force
-                    ? 'Regeneración del archivo PMTiles finalizada.'
-                    : 'Actualización del archivo PMTiles finalizada.'
-            );
-        } else {
-            return response(
-                $force
-                    ? 'Regeneración del archivo PMTiles iniciada.'
-                    : 'Actualización del archivo PMTiles iniciada.');
-        }
-    }
-
-    /**
      * Mostrar los detalles de un árbol
      *
      * @param  $id - ID del árbol
      * @return \Illuminate\Http\Response - JSON con los detalles del árbol.
      */
-    public function get($id)
+    public function get(String $id)
     {
         $tree = Arbol::select([
           'arboles.id',
