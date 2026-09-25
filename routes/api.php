@@ -6,7 +6,6 @@ use App\Http\Controllers\AportesController;
 use App\Http\Controllers\ArbolesController;
 use App\Http\Controllers\EspeciesController;
 use App\Http\Controllers\FuentesController;
-use App\Http\Controllers\MapaController;
 use App\Http\Controllers\UsuariosController;
 
 Route::get('/', function () {
@@ -15,7 +14,6 @@ Route::get('/', function () {
 
 Route::get('/fuentes/{slug}', [FuentesController::class, 'getTrees']);
 Route::get('/especies', [EspeciesController::class, 'list']);
-Route::get('/mapa', [MapaController::class, 'generate']);
 Route::get('/arboles', [ArbolesController::class, 'list']);
 Route::get('/arboles/{id}', [ArbolesController::class, 'get']);
 Route::post('/arboles', [ArbolesController::class, 'add']);

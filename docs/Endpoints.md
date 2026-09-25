@@ -2,9 +2,8 @@
 
 | Ruta            | Método | Descripción                                                         |
 | --------------- | ------ | ------------------------------------------------------------------- |
-| /fuentes/{slug} | GET    | Obtener el ID de una fuente                                         |
+| /fuentes/{slug} | GET    | Listar árboles de una fuente                                        |
 | /especies       | GET    | Listar especies                                                     |
-| /mapa (GET)     | GET    | Generar el archivo `/public/arboles.pmtiles`                        |
 | /arboles        | GET    | Listar árboles                                                      |
 | /arboles/{id}   | GET    | Mostrar los detalles de un árbol                                    |
 | /usuarios       | POST   | Obtener la fuente a la que pertenece un usuario                     |
@@ -19,7 +18,7 @@
 
 ## `GET /fuentes/{slug}`
 
-Retorna el ID de una fuente.
+Retorna los árboles de una fuente.
 
 ### Parámetros de ruta
 
@@ -30,14 +29,21 @@ Retorna el ID de una fuente.
 ### Respuesta exitosa — `200 OK`
 
 ```ts
-type Response = { id: number };
+type Tree = {
+    id: number;
+    lat: string;
+    lng: string;
+    species: number;
+};
+
+type Response = Tree[];
 ```
 
 ### Códigos de estado
 
 | Código | Descripción                                 |
 | ------ | ------------------------------------------- |
-| `200`  | Éxito. Devuelve el ID de la fuente          |
+| `200`  | Éxito. Devuelve el arreglo de árboles       |
 | `404`  | No existe una fuente con el `slug` indicado |
 
 ---
@@ -72,31 +78,9 @@ type Response = Species[];
 
 ### Códigos de estado
 
-| Código | Descripción                          |
-| ------ | ------------------------------------ |
-| `200`  | Éxito. Devuelve el array de especies |
-
----
-
-## `GET /mapa`
-
-Genera el archivo `/public/arboles.pmtiles` con los datos de todos los árboles no removidos.
-
-### Parámetros de consulta
-
-| Parámetro | Requerido | Descripción                                                          |
-| --------- | --------- | -------------------------------------------------------------------- |
-| `forzar`  | No        | Si se incluye, regenera el archivo completo en lugar de actualizarlo |
-
-### Respuesta exitosa — `200 OK`
-
-- No retorna datos
-
-### Códigos de estado
-
-| Código | Descripción                                  |
-| ------ | -------------------------------------------- |
-| `200`  | Éxito. El trabajo de generación fue iniciado |
+| Código | Descripción                            |
+| ------ | -------------------------------------- |
+| `200`  | Éxito. Devuelve el arreglo de especies |
 
 ---
 
@@ -117,7 +101,7 @@ type Tree = {
     id: number;
     lat: string;
     lng: string;
-    species: string;
+    species: number;
 };
 
 type Response = Tree[];
@@ -125,9 +109,9 @@ type Response = Tree[];
 
 ### Códigos de estado
 
-| Código | Descripción                         |
-| ------ | ----------------------------------- |
-| `200`  | Éxito. Devuelve el array de árboles |
+| Código | Descripción                           |
+| ------ | ------------------------------------- |
+| `200`  | Éxito. Devuelve el arreglo de árboles |
 
 ---
 

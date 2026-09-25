@@ -9,7 +9,6 @@ use App\Models\Usuario;
 
 use App\Rules\CaptchaRule;
 
-use App\Jobs\GenerarPMTiles;
 use App\Jobs\EnviarNuevoArbolEmail;
 
 use Illuminate\Http\Request;
@@ -31,18 +30,24 @@ class ArbolesController extends Controller
         ];
 
         return response()->stream(function () use ($request) {
-            echo '[';
-            $first = true;
 
-            $query = DB::table('arboles as a')
-                ->join('especies as e', 'a.especie_id', '=', 'e.id')
-                ->select(['a.id', 'a.lat', 'a.lng', 'e.url as species_url'])
-                ->orderBy('a.id');
+            $query = DB::table('arboles')
+            ->whereNull('arboles.removido')
+            ->select(
+                'arboles.id',
+                'arboles.lat',
+                'arboles.lng',
+                'arboles.especie_id',
+            );
 
             if ($request->has('comestibles')) {
-                $query->where('e.comestible', '<>', '');
+                $query
+                ->join('especies', 'arboles.especie_id', '=', 'especies.id')
+                ->where('especies.comestible', '<>', '');
             }
 
+            echo '[';
+            $first = true;
             $query->chunkById(500, function ($chunk) use (&$first) {
                 $rows = [];
                 foreach ($chunk as $row) {
@@ -50,7 +55,7 @@ class ArbolesController extends Controller
                         'id'      => $row->id,
                         'lat'     => $row->lat,
                         'lng'     => $row->lng,
-                        'species' => $row->species_url,
+                        'species' => $row->especie_id,
                     ];
                 }
                 echo ($first ? '' : ',') . substr(json_encode($rows), 1, -1);
@@ -60,8 +65,7 @@ class ArbolesController extends Controller
                     ob_flush();
                 }
                 flush();
-            }, 'a.id', 'id');
-
+            }, 'arboles.id', 'id');
             echo ']';
         }, 200, $headers);
     }
@@ -196,8 +200,6 @@ class ArbolesController extends Controller
                     EnviarNuevoArbolEmail::dispatch($user->source->email, $emailData, $images);
                 }
             });
-            // Regenerar el archivo pmtiles
-            GenerarPMTiles::dispatch(false);
             return response()->json();
         } catch (\Throwable $th) {
             \Log::error('Nuevo árbol - error al crear nuevo árbol:');
