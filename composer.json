@@ -3,6 +3,7 @@
     "name": "arbolado-urbano/arbolado-api",
     "type": "project",
     "description": "Mapa colaborativo del arbolado en espacios públicos.",
+    "license": "proprietary",
     "keywords": [
         "laravel",
         "framework"

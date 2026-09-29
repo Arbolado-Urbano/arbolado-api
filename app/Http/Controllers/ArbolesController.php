@@ -11,6 +11,8 @@ use App\Rules\CaptchaRule;
 
 use App\Jobs\EnviarNuevoArbolEmail;
 
+use Carbon\Carbon;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -23,27 +25,38 @@ class ArbolesController extends Controller
      */
     public function list(Request $request)
     {
+
         $headers = [
             'Content-Type'      => 'application/json',
             'X-Accel-Buffering' => 'no', // Disables buffering in Nginx
             'Cache-Control'     => 'no-cache',
         ];
 
+        $lastModified = DB::table('arboles')->max('updated_at');
+        if ($lastModified) {
+            $headers['Last-Modified'] = gmdate('D, d M Y H:i:s', strtotime($lastModified . ' UTC')) . ' GMT';
+        }
+
         return response()->stream(function () use ($request) {
 
             $query = DB::table('arboles')
-            ->whereNull('arboles.removido')
             ->select(
                 'arboles.id',
                 'arboles.lat',
                 'arboles.lng',
                 'arboles.especie_id',
+                'arboles.removido',
             );
 
             if ($request->has('comestibles')) {
                 $query
                 ->join('especies', 'arboles.especie_id', '=', 'especies.id')
                 ->where('especies.comestible', '<>', '');
+            }
+
+            if ($request->has('fecha')) {
+                $fecha = Carbon::parse($request->get('fecha'));
+                $query->where('updated_at', '>', $fecha);
             }
 
             echo '[';
@@ -56,6 +69,7 @@ class ArbolesController extends Controller
                         'lat'     => $row->lat,
                         'lng'     => $row->lng,
                         'species' => $row->especie_id,
+                        'deleted' => $row->removido,
                     ];
                 }
                 echo ($first ? '' : ',') . substr(json_encode($rows), 1, -1);

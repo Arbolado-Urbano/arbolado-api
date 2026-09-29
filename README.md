@@ -37,7 +37,7 @@ Este repositorio contiene una API que se comunica con [Arbolado Client](https://
 
 1. Levantar el servidor de la base de datos. Si se optó por usar Docker: `php artisan docker:up`.
 
-2. Ejecutar el comando `php artisan serve` para levantar una instancia del serivdor de desarrollo.
+2. Ejecutar el comando `php artisan dev` para levantar una instancia del serivdor de desarrollo.
 
 ## Instalación para producción
 

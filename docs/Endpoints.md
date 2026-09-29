@@ -90,9 +90,10 @@ Devuelve un listado de árboles disponibles en el sistema.
 
 ### Parámetros de consulta
 
-| Parámetro     | Requerido | Descripción                                                   |
-| ------------- | --------- | ------------------------------------------------------------- |
-| `comestibles` | No        | Si se incluye, se retornan únicamente los árboles comestibles |
+| Parámetro     | Requerido | Descripción                                                                                 |
+| ------------- | --------- | ------------------------------------------------------------------------------------------- |
+| `comestibles` | No        | Si se incluye, se retornan únicamente los árboles comestibles                               |
+| `fecha`       | No        | Si se incluye, se retornan únicamente los árboles actualizados después de la fecha indicada |
 
 ### Respuesta exitosa — `200 OK`
 
@@ -102,6 +103,7 @@ type Tree = {
     lat: string;
     lng: string;
     species: number;
+    deleted: string;
 };
 
 type Response = Tree[];
