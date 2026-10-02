@@ -7,40 +7,81 @@ use App\Models\Arbol;
 use App\Models\Registro;
 use App\Models\Usuario;
 
-use App\Mail\NuevoArbol as NuevoArbolCorreo;
-
 use App\Rules\CaptchaRule;
 
-use App\Jobs\GenerarPMTiles;
+use App\Jobs\EnviarNuevoArbolEmail;
+
+use Carbon\Carbon;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 
 class ArbolesController extends Controller
 {
     /**
-     * Generar el archivo /public/arboles.pmtiles
+     * listar árboles
      *
-     * @param  \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response - JSON con el listado de árboles.
      */
-    public function generate(Request $request)
+    public function list(Request $request)
     {
-        $force = $request->has('forzar');
-        GenerarPMTiles::dispatch($force);
-        if (config('queue.default') === 'sync') {
-            return response(
-                $force
-                    ? 'Regeneración del archivo PMTiles finalizada.'
-                    : 'Actualización del archivo PMTiles finalizada.'
-            );
-        } else {
-            return response(
-                $force
-                    ? 'Regeneración del archivo PMTiles iniciada.'
-                    : 'Actualización del archivo PMTiles iniciada.');
+
+        $headers = [
+            'Content-Type'      => 'application/json',
+            'X-Accel-Buffering' => 'no', // Disables buffering in Nginx
+            'Cache-Control'     => 'no-cache',
+        ];
+
+        $lastModified = DB::table('arboles')->max('updated_at');
+        if ($lastModified) {
+            $headers['Last-Modified'] = gmdate('D, d M Y H:i:s', strtotime($lastModified . ' UTC')) . ' GMT';
         }
+
+        return response()->stream(function () use ($request) {
+
+            $query = DB::table('arboles')
+            ->select(
+                'arboles.id',
+                'arboles.lat',
+                'arboles.lng',
+                'arboles.especie_id',
+                'arboles.removido',
+            );
+
+            if ($request->has('comestibles')) {
+                $query
+                ->join('especies', 'arboles.especie_id', '=', 'especies.id')
+                ->where('especies.comestible', '<>', '');
+            }
+
+            if ($request->has('fecha')) {
+                $fecha = Carbon::parse($request->get('fecha'));
+                $query->where('updated_at', '>', $fecha);
+            }
+
+            echo '[';
+            $first = true;
+            $query->chunkById(500, function ($chunk) use (&$first) {
+                $rows = [];
+                foreach ($chunk as $row) {
+                    $rows[] = [
+                        'id'      => $row->id,
+                        'lat'     => $row->lat,
+                        'lng'     => $row->lng,
+                        'species' => $row->especie_id,
+                        'deleted' => $row->removido,
+                    ];
+                }
+                echo ($first ? '' : ',') . substr(json_encode($rows), 1, -1);
+                $first = false;
+
+                if (ob_get_level() > 0) {
+                    ob_flush();
+                }
+                flush();
+            }, 'arboles.id', 'id');
+            echo ']';
+        }, 200, $headers);
     }
 
     /**
@@ -49,7 +90,7 @@ class ArbolesController extends Controller
      * @param  $id - ID del árbol
      * @return \Illuminate\Http\Response - JSON con los detalles del árbol.
      */
-    public function get($id)
+    public function get(String $id)
     {
         $tree = Arbol::select([
           'arboles.id',
@@ -86,8 +127,9 @@ class ArbolesController extends Controller
             'species'        => 'nullable|string|required_without:speciesUrl',
             'speciesUrl'     => 'nullable|string|required_without:species',
             'captcha'        => ['required', new CaptchaRule()],
-            'block'          => 'required|string',
-            'orientation'    => 'required|string',
+            'block'          => 'nullable|string',
+            'street'         => 'nullable|string',
+            'streetNumber'   => 'nullable|string',
             'height'         => 'nullable|string',
             'diameterTrunk'  => 'nullable|string',
             'diameterCanopy' => 'nullable|string',
@@ -97,7 +139,7 @@ class ArbolesController extends Controller
             'notes'          => 'nullable|string',
         ]);
 
-        $user = Usuario::select(['id', 'nombre', 'codigo', 'fuente_id'])->where('usuarios.codigo', $data['code'])->first();
+        $user = Usuario::where('usuarios.codigo', $data['code'])->with('source')->first();
         if (!$user) abort(401);
 
         try {
@@ -113,15 +155,18 @@ class ArbolesController extends Controller
                     $especieId = Especie::firstOrCreate([
                         // Por el chequeo inicial si "speciesUrl" no está definido entonces "species" si está definido.
                         'nombre_cientifico' => $data['species'],
-                    ])->url;
+                    ])->id;
                 }
                 $index = 1;
-                $idCensoBase = strtoupper("$data[block]$data[orientation]");
-                do {
-                    $idCenso = "$idCensoBase$index";
-                    $arbol = Arbol::select(['arboles.id'])->where('arboles.id_censo', $idCenso)->first();
-                    $index++;
-                } while ($arbol);
+                $idCenso = null;
+                if ($data["block"]) {
+                    $idCensoBase = strtoupper("$data[block]");
+                    do {
+                        $idCenso = "$idCensoBase-$index";
+                        $arbol = Arbol::select(['arboles.id'])->where('arboles.id_censo', $idCenso)->first();
+                        $index++;
+                    } while ($arbol);
+                }
                 $latLng = explode(',', $data['coordinates']);
                 $treeData = [
                     'lat' => $latLng[0],
@@ -141,42 +186,34 @@ class ArbolesController extends Controller
                     'notas' => $data['notes'] ?? null,
                     'arbol_id' => $arbol->id,
                     'usuario_id' => $user->id,
-                    'fuente_id' => $user->fuente_id,
+                    'fuente_id' => $user->source->id,
                 ];
                 Registro::create($recordData);
                 // Email admin
-                $especie = Especie::select(['nombre_cientifico', 'nombre_comun'])->where('id', $especieId)->first();
-                $emailData = array_merge($treeData, $recordData, [
-                    'block' => $data['block'],
-                    'orientation' => $data['orientation'],
-                    'especie_nombre_cientifico' => $especie->nombre_cientifico,
-                    'especie_nombre_comun' => $especie->nombre_comun,
-                    'censista_nombre' => $user->nombre,
-                    'censista_codigo' => $user->codigo,
-                ]);
-                $email = new NuevoArbolCorreo($emailData);
-                $email->subject('Nuevo árbol | Arbolado Urbano');
-                if ($request->hasFile('images')) {
-                    $images = $request->file('images');
-                    try {
-                        foreach ($images as $index => $image) {
-                            $imageName = $idCenso.'-'.($index + 1);
-                            $email->attach($image->getRealPath(), ['as' => $imageName, 'mime' => $image->getMimeType()]);
+                if ($user->source->email) {
+                    $especie = Especie::select(['nombre_cientifico', 'nombre_comun'])->where('id', $especieId)->first();
+                    $emailData = array_merge($treeData, $recordData, [
+                        'block' => $data['block'] ?? null,
+                        'street' => $data['street'],
+                        'streetNumber' => $data['streetNumber'] ?? null,
+                        'especie_nombre_cientifico' => $especie->nombre_cientifico,
+                        'especie_nombre_comun' => $especie->nombre_comun,
+                        'censista_nombre' => $user->nombre,
+                        'censista_codigo' => $user->codigo,
+                    ]);
+                    $images = [];
+                    if ($request->hasFile('images')) {
+                        foreach ($request->file('images') as $index => $image) {
+                            $path = $image->store('temp/email-images', 'local');
+                            $images[] = [
+                                'path' => $path,
+                                'name' => ($idCenso ?? $arbol->id) . '-' . ($index + 1),
+                            ];
                         }
-                    } catch (\Throwable $th) {
-                        \Log::error('Nuevo árbol - error adjuntando fotos para email:');
-                        \Log::error($th);
                     }
-                }
-                try {
-                    Mail::to(config('mail.admin_email'))->send($email);
-                } catch (\Throwable $th) {
-                    \Log::error('Nuevo árbol - error al enviar email:');
-                    \Log::error($th);
+                    EnviarNuevoArbolEmail::dispatch($user->source->email, $emailData, $images);
                 }
             });
-            // Regenerar el archivo pmtiles
-            GenerarPMTiles::dispatch();
             return response()->json();
         } catch (\Throwable $th) {
             \Log::error('Nuevo árbol - error al crear nuevo árbol:');

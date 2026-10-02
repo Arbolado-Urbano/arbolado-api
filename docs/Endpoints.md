@@ -2,9 +2,9 @@
 
 | Ruta            | Método | Descripción                                                         |
 | --------------- | ------ | ------------------------------------------------------------------- |
-| /fuentes/{slug} | GET    | Obtener el ID de una fuente                                         |
-| /especies       | GET    | Listar todas las especies                                           |
-| /arboles (GET)  | GET    | Generar el archivo `/public/arboles.pmtiles`                        |
+| /fuentes/{slug} | GET    | Listar árboles de una fuente                                        |
+| /especies       | GET    | Listar especies                                                     |
+| /arboles        | GET    | Listar árboles                                                      |
 | /arboles/{id}   | GET    | Mostrar los detalles de un árbol                                    |
 | /usuarios       | POST   | Obtener la fuente a la que pertenece un usuario                     |
 | /arboles (POST) | POST   | Agregar un nuevo árbol                                              |
@@ -18,7 +18,7 @@
 
 ## `GET /fuentes/{slug}`
 
-Retorna el ID de una fuente.
+Retorna los árboles de una fuente.
 
 ### Parámetros de ruta
 
@@ -29,24 +29,35 @@ Retorna el ID de una fuente.
 ### Respuesta exitosa — `200 OK`
 
 ```ts
-type Response = { id: number };
+type Tree = {
+    id: number;
+    lat: string;
+    lng: string;
+    species: number;
+};
+
+type Response = Tree[];
 ```
 
 ### Códigos de estado
 
 | Código | Descripción                                 |
 | ------ | ------------------------------------------- |
-| `200`  | Éxito. Devuelve el ID de la fuente          |
+| `200`  | Éxito. Devuelve el arreglo de árboles       |
 | `404`  | No existe una fuente con el `slug` indicado |
 
 ---
 
 ## `GET /especies`
 
-Devuelve el listado completo de especies disponibles en el sistema.
+Devuelve un listado de especies disponibles en el sistema.
 Los campos nulos, vacíos o con valor `0` son omitidos de cada objeto.
 
-No recibe parámetros.
+### Parámetros de consulta
+
+| Parámetro     | Requerido | Descripción                                                    |
+| ------------- | --------- | -------------------------------------------------------------- |
+| `comestibles` | No        | Si se incluye, se retornan únicamente las especies comestibles |
 
 ### Respuesta exitosa — `200 OK`
 
@@ -67,31 +78,42 @@ type Response = Species[];
 
 ### Códigos de estado
 
-| Código | Descripción                          |
-| ------ | ------------------------------------ |
-| `200`  | Éxito. Devuelve el array de especies |
+| Código | Descripción                            |
+| ------ | -------------------------------------- |
+| `200`  | Éxito. Devuelve el arreglo de especies |
 
 ---
 
 ## `GET /arboles`
 
-Genera el archivo `/public/arboles.pmtiles` con los datos de todos los árboles no removidos.
+Devuelve un listado de árboles disponibles en el sistema.
 
 ### Parámetros de consulta
 
-| Parámetro | Requerido | Descripción                                                          |
-| --------- | --------- | -------------------------------------------------------------------- |
-| `forzar`  | No        | Si se incluye, regenera el archivo completo en lugar de actualizarlo |
+| Parámetro     | Requerido | Descripción                                                                                 |
+| ------------- | --------- | ------------------------------------------------------------------------------------------- |
+| `comestibles` | No        | Si se incluye, se retornan únicamente los árboles comestibles                               |
+| `fecha`       | No        | Si se incluye, se retornan únicamente los árboles actualizados después de la fecha indicada |
 
 ### Respuesta exitosa — `200 OK`
 
-- No retorna datos
+```ts
+type Tree = {
+    id: number;
+    lat: string;
+    lng: string;
+    species: number;
+    deleted: string;
+};
+
+type Response = Tree[];
+```
 
 ### Códigos de estado
 
-| Código | Descripción                                  |
-| ------ | -------------------------------------------- |
-| `200`  | Éxito. El trabajo de generación fue iniciado |
+| Código | Descripción                           |
+| ------ | ------------------------------------- |
+| `200`  | Éxito. Devuelve el arreglo de árboles |
 
 ---
 

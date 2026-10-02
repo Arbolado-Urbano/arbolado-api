@@ -1,11 +1,10 @@
 # Comandos personalizados
 
-| Comando                                | Descripción                      |
-| -------------------------------------- | -------------------------------- |
-| [`docker:up`](#dockerup)               | Levanta el contenedor de MySQL   |
-| [`docker:pull`](#dockerpull)           | Actualiza la imagen de MySQL     |
-| [`docker:down`](#dockerdown)           | Detiene el contenedor de MySQL   |
-| [`pmtiles:generate`](#pmtilesgenerate) | Genera `/public/arboles.pmtiles` |
+| Comando                      | Descripción                    |
+| ---------------------------- | ------------------------------ |
+| [`docker:up`](#dockerup)     | Levanta el contenedor de MySQL |
+| [`docker:pull`](#dockerpull) | Actualiza la imagen de MySQL   |
+| [`docker:down`](#dockerdown) | Detiene el contenedor de MySQL |
 
 ---
 
@@ -36,18 +35,3 @@ Detiene el contenedor de MySQL activo.
 ```bash
 php artisan docker:down
 ```
-
----
-
-## `pmtiles:generate`
-
-Genera el archivo `/public/arboles.pmtiles` con los datos de árboles. Por defecto, actualiza el archivo existente de forma incremental. Usar `--force` para regenerarlo desde cero.
-
-```bash
-php artisan pmtiles:generate
-php artisan pmtiles:generate --force
-```
-
-| Opción    | Descripción                                           |
-| --------- | ----------------------------------------------------- |
-| `--force` | Regenera el archivo completo en lugar de actualizarlo |

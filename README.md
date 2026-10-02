@@ -12,7 +12,6 @@ Este repositorio contiene una API que se comunica con [Arbolado Client](https://
 
 - [PHP](https://www.php.net/)
 - [Composer](https://getcomposer.org/)
-- [Tippecanoe](https://github.com/felt/tippecanoe)
 - [Docker](https://docs.docker.com/get-docker/) (Opcional para desarrollo)
 
 ## Instalación para desarrollo
@@ -34,14 +33,11 @@ Este repositorio contiene una API que se comunica con [Arbolado Client](https://
     - Deshabilitar `foreign key checks` al exportar.
     - No incluir la tabla `migrations`.
 
-7.  Obtener o compilar el binario de [tippecanoe](https://github.com/felt/tippecanoe) y copiarlo en la carpeta `/resources/bin/`.
-
 ## Ejecución para desarrollo
 
 1. Levantar el servidor de la base de datos. Si se optó por usar Docker: `php artisan docker:up`.
 
-2. Ejecutar el comando `php artisan serve` para levantar una instancia del serivdor de desarrollo.
-    - La primera vez, y cada vez que se desee actualizar el archivo `arboles.pmtiles`: `php artisan pmtiles:generate` (esto puede demorar algunos minutos).
+2. Ejecutar el comando `php artisan dev` para levantar una instancia del serivdor de desarrollo.
 
 ## Instalación para producción
 
@@ -55,12 +51,9 @@ Este repositorio contiene una API que se comunica con [Arbolado Client](https://
 
 5. Inicializar la base de datos `php artisan migrate`.
 
-6. Obtener o compilar el binario de [tippecanoe](https://github.com/felt/tippecanoe) y copiarlo en la carpeta `/resources/bin/`.
-    - Puede ser que algunos clientes FTP corrompan este archivo al subirlo al servidor ya que lo tratan como archivo de texto en lugar de un archivo binario.
+6. Si se usa Apache incluir el archivo `.htaccess` correspondiente en la carpeta `/public`.
 
-7. Si se usa Apache incluir el archivo `.htaccess` correspondiente en la carpeta `/public`.
-
-8. Configurar trabajos de Cron para las procesar la cola de trabajos y las tareas programadas:
+7. Configurar trabajos de Cron para las procesar la cola de trabajos y las tareas programadas:
     - `php artisan schedule:run >> /dev/null 2>&1`
     - `php artisan queue:work --stop-when-empty >> /dev/null 2>&1`
 
