@@ -27,3 +27,6 @@ Route::get('/admin/aportes/pendientes', [\App\Http\Controllers\Admin\AportesPend
 
 Route::post('/admin/aportes/{id}/aprobar', [\App\Http\Controllers\Admin\ModerarAporteController::class, 'aprobar'])->whereNumber('id')->middleware('admin.token');
 Route::post('/admin/aportes/{id}/rechazar', [\App\Http\Controllers\Admin\ModerarAporteController::class, 'rechazar'])->whereNumber('id')->middleware('admin.token');
+
+Route::get('/admin/fuentes/{fuenteId}/revision', [\App\Http\Controllers\Admin\FinalizarRevisionController::class, 'preview'])->whereNumber('fuenteId')->middleware('admin.token');
+Route::post('/admin/fuentes/{fuenteId}/finalizar', [\App\Http\Controllers\Admin\FinalizarRevisionController::class, 'finalizar'])->whereNumber('fuenteId')->middleware('admin.token');
