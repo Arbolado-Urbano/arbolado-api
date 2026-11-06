@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Aporte;
-use App\Models\Arbol;
-use App\Models\Registro;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -27,44 +25,28 @@ class ModerarAporteController extends Controller
             'notas' => 'nullable|string',
         ]);
 
-        $arbolId = DB::transaction(function () use ($id, $datos) {
+        DB::transaction(function () use ($id, $datos) {
             $aporte = Aporte::whereKey($id)->lockForUpdate()->firstOrFail();
-            if ($aporte->cargado !== null) {
-                throw ValidationException::withMessages(['aporte' => 'El aporte ya fue procesado.']);
+            if ($aporte->cargado !== null && (int) $aporte->cargado !== -1 && (int) $aporte->cargado !== -2) {
+                throw ValidationException::withMessages(['aporte' => 'El aporte ya fue finalizado.']);
             }
-            $arbol = Arbol::create([
-                'lat' => $datos['lat'],
-                'lng' => $datos['lng'],
-                'especie_id' => $datos['especie_id'],
-            ]);
-            Registro::create([
-                'arbol_id' => $arbol->id,
-                'fuente_id' => $aporte->fuente_id,
-                'altura' => $datos['altura'] ?? null,
-                'diametro_a_p' => $datos['diametro_a_p'] ?? null,
-                'diametro_copa' => $datos['diametro_copa'] ?? null,
-                'inclinacion' => $datos['inclinacion'] ?? null,
-                'estado_fitosanitario' => $datos['estado_fitosanitario'] ?? null,
-                'etapa_desarrollo' => $datos['etapa_desarrollo'] ?? null,
-                'notas' => $datos['notas'] ?? null,
-            ]);
-            $aporte->cargado = 1;
+            $aporte->fill($datos);
+            $aporte->cargado = -1;
             $aporte->save();
-            return $arbol->id;
         });
-        return response()->json(['estado' => 'aprobado', 'arbol_id' => $arbolId]);
+        return response()->json(['estado' => 'aprobado_pendiente', 'cargado' => -1]);
     }
 
     public function rechazar(int $id)
     {
         DB::transaction(function () use ($id) {
             $aporte = Aporte::whereKey($id)->lockForUpdate()->firstOrFail();
-            if ($aporte->cargado !== null) {
+            if ($aporte->cargado !== null && (int) $aporte->cargado !== -1 && (int) $aporte->cargado !== -2) {
                 throw ValidationException::withMessages(['aporte' => 'El aporte ya fue procesado.']);
             }
-            $aporte->cargado = 2;
+            $aporte->cargado = -2;
             $aporte->save();
         });
-        return response()->json(['estado' => 'rechazado']);
+        return response()->json(['estado' => 'rechazado_pendiente', 'cargado' => -2]);
     }
 }
