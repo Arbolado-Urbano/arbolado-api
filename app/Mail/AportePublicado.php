@@ -18,9 +18,11 @@ class AportePublicado extends Mailable
     {
         $cantidad = (int) ($this->datos['cantidad'] ?? 1);
         return $this
-            ->subject($cantidad === 1
+            ->subject($cantidad === 0
+                ? '🌳 Revisamos tus aportes en Arbolado Urbano'
+                : ($cantidad === 1
                 ? '🌳 ¡Se publicó tu aporte en Arbolado Urbano!'
-                : '🌳 ¡Se publicaron tus aportes en Arbolado Urbano!')
+                : '🌳 ¡Se publicaron tus aportes en Arbolado Urbano!'))
             ->markdown('emails.aporte-publicado', ['datos' => $this->datos]);
     }
 }
