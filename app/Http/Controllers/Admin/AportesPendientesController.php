@@ -15,7 +15,7 @@ class AportesPendientesController extends Controller
                 'source:id,nombre,slug',
                 'species'
             ])
-            ->whereNull('cargado')
+            ->where(function ($query) { $query->whereNull('cargado')->orWhereIn('cargado', [-1, -2]); })
             ->orderBy('fuente_id')
             ->orderBy('id')
             ->get();
@@ -29,7 +29,9 @@ class AportesPendientesController extends Controller
                     'fuente_id' => (int) $fuenteId,
                     'nombre' => $fuente?->nombre,
                     'slug' => $fuente?->slug,
-                    'cantidad_pendientes' => $grupo->count(),
+                    'cantidad_pendientes' => $grupo->whereNull('cargado')->count(),
+                    'cantidad_aprobados_sin_notificar' => $grupo->where('cargado', -1)->count(),
+                    'cantidad_rechazados_sin_notificar' => $grupo->where('cargado', -2)->count(),
                     'aportes' => $grupo->values(),
                 ];
             })
