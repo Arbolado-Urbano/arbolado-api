@@ -24,3 +24,5 @@ Route::post('/identificar', [EspeciesController::class, 'identify']);
 // Consultas administrativas protegidas (solo lectura).
 Route::get('/admin/aportes/pendientes', [\App\Http\Controllers\Admin\AportesPendientesController::class, 'index'])
     ->middleware('admin.token');
+
+// Las acciones de moderación se incorporarán tras validar el controlador.
