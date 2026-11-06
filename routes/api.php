@@ -20,3 +20,7 @@ Route::post('/arboles', [ArbolesController::class, 'add']);
 Route::post('/aportes', [AportesController::class, 'add']);
 Route::post('/usuarios', [UsuariosController::class, 'get']);
 Route::post('/identificar', [EspeciesController::class, 'identify']);
+
+// Consultas administrativas protegidas (solo lectura).
+Route::get('/admin/aportes/pendientes', [\App\Http\Controllers\Admin\AportesPendientesController::class, 'index'])
+    ->middleware('admin.token');
