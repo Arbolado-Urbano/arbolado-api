@@ -44,4 +44,8 @@ return [
         ],
     ],
 
+    'admin' => [
+        'token' => env('ADMIN_API_TOKEN'),
+    ],
+
 ];
