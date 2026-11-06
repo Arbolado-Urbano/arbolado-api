@@ -30,9 +30,7 @@ Desde ya muchas gracias por tu tiempo y ojalá sigamos en contacto.
 
 Si te gusta el trabajo que hacemos, podés colaborar compartiendo el proyecto en las redes y/o [con un cafecito](https://cafecito.app/arboladomapa).
 
-Saludos,
-
-**Martín y equipo.**
-
+Saludos,  
+**Martín y equipo.**  
 [arboladourbano.com](https://arboladourbano.com)
 @endcomponent
