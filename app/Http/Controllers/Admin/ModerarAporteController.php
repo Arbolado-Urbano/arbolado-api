@@ -48,7 +48,6 @@ class ModerarAporteController extends Controller
                 'etapa_desarrollo' => $datos['etapa_desarrollo'] ?? null,
                 'notas' => $datos['notas'] ?? null,
             ]);
-            DB::table('aportes_notificaciones')->insert([ 'aporte_id' => $aporte->id, 'fuente_id' => $aporte->fuente_id, 'arbol_id' => $arbol->id, 'estado' => 'aprobado', 'created_at' => now(), 'updated_at' => now() ]);
             $aporte->cargado = 1;
             $aporte->save();
             return $arbol->id;
@@ -63,7 +62,6 @@ class ModerarAporteController extends Controller
             if ($aporte->cargado !== null) {
                 throw ValidationException::withMessages(['aporte' => 'El aporte ya fue procesado.']);
             }
-            DB::table('aportes_notificaciones')->insert([ 'aporte_id' => $aporte->id, 'fuente_id' => $aporte->fuente_id, 'arbol_id' => null, 'estado' => 'rechazado', 'created_at' => now(), 'updated_at' => now() ]);
             $aporte->cargado = 2;
             $aporte->save();
         });
