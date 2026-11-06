@@ -25,4 +25,5 @@ Route::post('/identificar', [EspeciesController::class, 'identify']);
 Route::get('/admin/aportes/pendientes', [\App\Http\Controllers\Admin\AportesPendientesController::class, 'index'])
     ->middleware('admin.token');
 
-// Las acciones de moderación se incorporarán tras validar el controlador.
+Route::post('/admin/aportes/{id}/aprobar', [\App\Http\Controllers\Admin\ModerarAporteController::class, 'aprobar'])->whereNumber('id')->middleware('admin.token');
+Route::post('/admin/aportes/{id}/rechazar', [\App\Http\Controllers\Admin\ModerarAporteController::class, 'rechazar'])->whereNumber('id')->middleware('admin.token');
