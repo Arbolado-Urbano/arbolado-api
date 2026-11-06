@@ -48,4 +48,5 @@ return [
         'token' => env('ADMIN_API_TOKEN'),
     ],
 
+    'arbolado_mapa_fuente_url' => env('ARBOLADO_MAPA_FUENTE_URL'),
 ];
