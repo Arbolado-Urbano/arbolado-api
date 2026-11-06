@@ -23,6 +23,7 @@ class Aporte extends Model
       'inclinacion',
       'estado_fitosanitario',
       'etapa_desarrollo',
+      'notas',
       'fuente_id',
       'especie_id'
     ];
