@@ -9,6 +9,7 @@ use App\Models\Arbol;
 use App\Models\Fuente;
 use App\Models\Registro;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
@@ -38,40 +39,44 @@ class FinalizarRevisionController extends Controller
         ]);
     }
 
-    public function finalizar(int $fuenteId): JsonResponse
+    public function finalizar(Request $request, int $fuenteId): JsonResponse
     {
-        // Bloqueo por colaborador: impide dos cierres simultáneos para la misma fuente.
-        $resultado = DB::transaction(function () use ($fuenteId) {
+        // Esta fase está restringida a pruebas locales y correo en log.
+        if (!app()->environment('local') || config('mail.default') !== 'log') {
+            return response()->json(['message' => 'Finalización habilitada únicamente en entorno local con MAIL_MAILER=log.'], 403);
+        }
+
+        $texto = $request->validate([
+            'asunto' => ['required', 'string', 'max:200'],
+            'mensaje' => ['required', 'string', 'max:15000'],
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'distinct'],
+        ]);
+
+        // Primero publicar de forma atómica. El correo se procesa DESPUÉS del commit.
+        // Una repetición nunca vuelve a crear árboles, porque los aportes dejan de estar en -1.
+        $resultado = DB::transaction(function () use ($fuenteId, $texto) {
             $fuente = Fuente::whereKey($fuenteId)->lockForUpdate()->firstOrFail();
             $aportes = Aporte::where('fuente_id', $fuenteId)
                 ->whereIn('cargado', [-1, -2])->orderBy('id')->lockForUpdate()->get();
 
             if ($aportes->isEmpty()) {
-                throw ValidationException::withMessages(['aportes' => 'No hay decisiones pendientes de notificar.']);
+                throw ValidationException::withMessages(['aportes' => 'No hay decisiones pendientes de finalizar.']);
+            }
+            $esperados = $aportes->pluck('id')->map(fn ($id) => (int) $id)->sort()->values()->all();
+            $recibidos = collect($texto['ids'])->map(fn ($id) => (int) $id)->sort()->values()->all();
+            if ($esperados !== $recibidos) {
+                throw ValidationException::withMessages(['aportes' => 'Los aportes cambiaron desde la vista previa. Actualizá la revisión.']);
             }
             if (!filter_var($fuente->email, FILTER_VALIDATE_EMAIL)) {
                 throw ValidationException::withMessages(['email' => 'El colaborador no tiene un correo válido.']);
             }
-
             $aprobados = $aportes->where('cargado', -1)->count();
             $rechazados = $aportes->where('cargado', -2)->count();
-            $urlPlantilla = config('services.arbolado_mapa_fuente_url');
-            if ($aprobados && (!$fuente->slug || !is_string($urlPlantilla) || !str_contains($urlPlantilla, '{slug}'))) {
-                throw ValidationException::withMessages(['url_mapa' => 'Configurá ARBOLADO_MAPA_FUENTE_URL con {slug} antes de finalizar.']);
+            $urlMapa = 'https://arboladourbano.com/fuente/' . rawurlencode((string) $fuente->slug);
+            if ($aprobados && !$fuente->slug) {
+                throw ValidationException::withMessages(['url_mapa' => 'Falta el slug del colaborador.']);
             }
-            $urlMapa = $aprobados ? str_replace('{slug}', rawurlencode($fuente->slug), $urlPlantilla) : null;
-            if ($urlMapa && (!filter_var($urlMapa, FILTER_VALIDATE_URL) || !in_array(parse_url($urlMapa, PHP_URL_HOST), ['arboladourbano.com', 'www.arboladourbano.com'], true))) {
-                throw ValidationException::withMessages(['url_mapa' => 'La URL del mapa del colaborador no es válida.']);
-            }
-
-            // La transacción se revierte si falla el transporte de correo.
-            // El envío y la confirmación SQL no son atómicos ante fallas externas.
-            Mail::to($fuente->email)->send(new AportePublicado([
-                'nombre' => $fuente->nombre,
-                'cantidad' => $aprobados,
-                'rechazados' => $rechazados,
-                'url_mapa' => $urlMapa,
-            ]));
 
             foreach ($aportes as $aporte) {
                 if ((int) $aporte->cargado === -1) {
@@ -97,10 +102,41 @@ class FinalizarRevisionController extends Controller
                 }
                 $aporte->save();
             }
-
-            return ['aprobados' => $aprobados, 'rechazados' => $rechazados, 'total' => $aportes->count()];
+            return [
+                'aprobados' => $aprobados,
+                'rechazados' => $rechazados,
+                'total' => $aportes->count(),
+                'email' => $fuente->email,
+                'nombre' => $fuente->nombre,
+                'url_mapa' => $urlMapa,
+            ];
         });
 
-        return response()->json(['estado' => 'finalizado', ...$resultado]);
+        try {
+            Mail::to($resultado['email'])->send(new AportePublicado([
+                'nombre' => $resultado['nombre'],
+                'cantidad' => $resultado['aprobados'],
+                'rechazados' => $resultado['rechazados'],
+                'url_mapa' => $resultado['url_mapa'],
+                'asunto' => $texto['asunto'],
+                'mensaje' => $texto['mensaje'],
+            ]));
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->json([
+                'estado' => 'publicado_sin_notificar',
+                'message' => 'Los árboles se publicaron, pero falló el registro del correo. No vuelvas a finalizar: no se duplicarán los árboles.',
+                'aprobados' => $resultado['aprobados'],
+                'rechazados' => $resultado['rechazados'],
+            ], 500);
+        }
+
+        return response()->json([
+            'estado' => 'finalizado',
+            'aprobados' => $resultado['aprobados'],
+            'rechazados' => $resultado['rechazados'],
+            'total' => $resultado['total'],
+            'correo' => 'registrado_en_log',
+        ]);
     }
 }
