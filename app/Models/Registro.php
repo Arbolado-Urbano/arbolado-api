@@ -17,6 +17,10 @@ class Registro extends Model
         'altura',
         'diametro_a_p',
         'diametro_copa',
+        'lugar',
+        'altura_copa',
+        'altura_tronco',
+        'cobertura',
         'inclinacion',
         'estado_fitosanitario',
         'etapa_desarrollo',
@@ -28,10 +32,11 @@ class Registro extends Model
 
     /**
      * The attributes excluded from the model's JSON form.
+     * Las notas son de uso interno de las fuentes y no se publican.
      *
      * @var array
      */
-    protected $hidden = [];
+    protected $hidden = ['notas'];
 
     public function tree()
     {

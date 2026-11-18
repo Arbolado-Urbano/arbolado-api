@@ -37,6 +37,26 @@
       <b>Diámetro copa:</b> {{$data['diametro_copa']}}m
     </li>
   @endisset
+  @isset($data['lugar'])
+    <li>
+      <b>Lugar:</b> {{ucfirst($data['lugar'])}}
+    </li>
+  @endisset
+  @isset($data['altura_copa'])
+    <li>
+      <b>Altura copa:</b> {{$data['altura_copa']}}m
+    </li>
+  @endisset
+  @isset($data['altura_tronco'])
+    <li>
+      <b>Altura tronco:</b> {{$data['altura_tronco']}}m
+    </li>
+  @endisset
+  @isset($data['cobertura'])
+    <li>
+      <b>Cobertura:</b> {{$data['cobertura']}}%
+    </li>
+  @endisset
   @isset($data['inclinacion'])
     <li>
       <b>Inclinación:</b> {{$data['inclinacion']}}º
