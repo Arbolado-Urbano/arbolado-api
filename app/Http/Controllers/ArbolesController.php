@@ -56,7 +56,9 @@ class ArbolesController extends Controller
 
             if ($request->has('fecha')) {
                 $fecha = Carbon::parse($request->get('fecha'));
-                $query->where('updated_at', '>', $fecha);
+                // ">=" porque "fecha" tiene precisión de segundos: con ">" se perderían los cambios hechos
+                // en el mismo segundo que el último sync. Recibir árboles repetidos es inocuo en el cliente.
+                $query->where('arboles.updated_at', '>=', $fecha);
             }
 
             echo '[';
