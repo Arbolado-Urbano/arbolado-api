@@ -54,7 +54,7 @@
   @endisset
   @isset($data['cobertura'])
     <li>
-      <b>Cobertura:</b> {{$data['cobertura']}}%
+      <b>Cobertura de copa:</b> {{$data['cobertura']}}%
     </li>
   @endisset
   @isset($data['inclinacion'])

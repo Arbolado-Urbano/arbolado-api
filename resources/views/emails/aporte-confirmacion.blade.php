@@ -51,7 +51,7 @@ Estos son los datos que recibimos:
   @endisset
   @isset($data['development'])
     <li>
-      <b>Etapa de desarrollo:</b> {{strtoupper($data['development'])}}
+      <b>Etapa de desarrollo:</b> {{mb_strtoupper($data['development'])}}
     </li>
   @endisset
   @isset($data['species'])
