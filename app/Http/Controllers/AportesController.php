@@ -42,6 +42,12 @@ class AportesController extends Controller
             'notes'          => 'nullable|string',
         ]);
 
+        // Las fuentes censistas deben cargar árboles con su código, no como aportes
+        $esFuenteCensista = Fuente::where('email', $data['email'])->has('users')->exists();
+        if ($esFuenteCensista) {
+            return response()->json(['error' => 'census_source'], 409);
+        }
+
         try {
             DB::transaction(function () use ($data) {
                 $latLng = explode(',', $data['coordinates']);
