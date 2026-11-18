@@ -172,9 +172,10 @@ class ArbolesController extends Controller
                     'lat' => $latLng[0],
                     'lng' => $latLng[1],
                     'id_censo' => $idCenso,
-                    'localidad' => 'Colón',
                     'especie_id' => $especieId,
                 ];
+                // La localidad depende de la fuente del censista; si no tiene se usa el valor por defecto de la tabla
+                if ($user->source->localidad) $treeData['localidad'] = $user->source->localidad;
                 $arbol = Arbol::create($treeData);
                 $recordData = [
                     'altura' => $data['height'] ?? null,
